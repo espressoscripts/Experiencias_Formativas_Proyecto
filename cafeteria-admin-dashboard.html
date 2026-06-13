@@ -1,0 +1,1489 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Café de Especialidad — Dashboard de Control</title>
+  
+  <!-- Google Fonts: Inter para UI limpia y Playfair Display para encabezados sofisticados -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    // Configuración de Tailwind para ajustar los colores de marca e integrar la tipografía limpia
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            coffee: {
+              dark: '#4A3525',      // Marrón oscuro principal de tostado artesanal
+              accent: '#5D4330',    // Tono café acentuado secundario
+              light: '#F4F1EA',     // Beige suave para fondos secundarios
+              border: '#E2DACD',    // Detalle de borde beige elegante
+              muted: '#8D7A68',     // Café pálido para subtítulos y texto secundario
+              ink: '#231a12',       // Tinta de café negro para el texto principal
+            },
+            app: {
+              bg: '#FAF9F7',        // Fondo gris sutil cálido y elegante
+            }
+          },
+          fontFamily: {
+            serif: ['Playfair Display', 'Iowan Old Style', 'Georgia', 'serif'],
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Estilos personalizados para control fino de tipografía, transiciones y alineación tabular */
+    :root {
+      --bg: #FAF9F7;
+      --surface: #ffffff;
+      --fg: #231a12;
+      --border: #E2DACD;
+      --accent: #4A3525;
+      --danger: #E11D48; /* Rojo brillante premium para alertas de stock bajo */
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+
+    /* Tabular-nums para que los precios y las cantidades de stock se alineen impecablemente */
+    .tabular-numbers {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Scrollbars personalizados elegantes y mínimos */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #E2DACD;
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8D7A68;
+    }
+
+    /* Animación sutil de pulso para el estado del servidor */
+    @keyframes serverPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.15); }
+    }
+    .status-pulse {
+      animation: serverPulse 2s infinite ease-in-out;
+    }
+
+    /* Efectos de desvanecimiento de pestañas */
+    .tab-content {
+      transition: opacity 0.2s ease-in-out;
+    }
+    
+    /* Panel de Tweak flotante sofisticado para demos */
+    .tweak-panel {
+      box-shadow: 0 10px 30px -5px rgba(74, 53, 37, 0.15);
+    }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col overflow-hidden select-none">
+
+  <!-- NOTIFICACIÓN TOAST FLOTANTE -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-coffee-dark text-white px-5 py-3.5 rounded-xl shadow-xl flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
+    <span id="toast-icon" class="text-lg">☕</span>
+    <span id="toast-message" class="text-sm font-medium tracking-wide">Notificación de sistema</span>
+  </div>
+
+  <div class="flex flex-1 h-screen overflow-hidden">
+    
+    <!-- BARRA LATERAL DE NAVEGACIÓN (SIDEBAR) -->
+    <aside class="w-64 bg-coffee-dark border-r border-coffee-border/30 flex flex-col justify-between p-6 shrink-0 relative z-10 text-white">
+      <div>
+        <!-- Brand / Header de la Cafetería -->
+        <div class="flex items-center gap-3 pb-8 border-b border-white/10">
+          <div class="bg-coffee-light/10 p-2.5 rounded-xl border border-white/15">
+            <!-- SVG de un grano de café monolineal limpio -->
+            <svg class="w-6 h-6 text-[#E2DACD]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c-1.2 0-2.4.4-3.4 1.2a7 7 0 00-2.4 5.3A7.5 7.5 0 0011.5 17h.5a8 8 0 005.4-2 7 7 0 002.4-5.3A7.5 7.5 0 0014.5 3H12z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11.5 17c-2 0-3.9-.8-5.3-2.3a7.5 7.5 0 01-1.2-5.4M14.5 3a7.5 7.5 0 015 6.4c0 1.2-.4 2.4-1.2 3.4M11.5 9c1 .5 2 1.5 1 3.5M8 12.5C9 14 10 15 12 15" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="font-serif text-lg font-bold tracking-tight text-[#FAF9F7]">Origen Único</h2>
+            <p class="text-[11px] text-coffee-muted tracking-widest uppercase font-semibold">Café de Especialidad</p>
+          </div>
+        </div>
+
+        <!-- Menú de navegación principal -->
+        <nav class="mt-8 space-y-1.5">
+          <button onclick="switchTab('inicio')" id="btn-tab-inicio" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all group duration-200">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5 opacity-80 group-hover:opacity-100" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+              </svg>
+              <span>Inicio</span>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-white/10 text-[#E2DACD] hidden">Live</span>
+          </button>
+
+          <button onclick="switchTab('inventario')" id="btn-tab-inventario" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all group duration-200">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5 opacity-80 group-hover:opacity-100" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 20.25h12m-12-16.5h12M4.5 9h15M4.5 15h15" />
+              </svg>
+              <span>Inventario</span>
+            </div>
+          </button>
+
+          <button onclick="switchTab('facturacion')" id="btn-tab-facturacion" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all group duration-200">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5 opacity-80 group-hover:opacity-100" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.559c.43.274.96.274 1.39 0l.879-.559M9 9.818l.879-.559c.43-.274.96-.274 1.39 0l.879.559M12 3a9 9 0 110 18 9 9 0 010-18z" />
+              </svg>
+              <span>Facturación</span>
+            </div>
+          </button>
+
+          <button onclick="switchTab('alertas')" id="btn-tab-alertas" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all group duration-200">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5 opacity-80 group-hover:opacity-100" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+              </svg>
+              <span>Alertas</span>
+            </div>
+            <!-- Badge dinámico de alerta de stock bajo -->
+            <span id="sidebar-alert-badge" class="hidden px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-600 text-white animate-pulse">0</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Pie del Sidebar: Datos de sesión de Cafetería -->
+      <div class="pt-6 border-t border-white/10 text-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-coffee-light/20 flex items-center justify-center font-bold text-[#E2DACD] border border-white/10 uppercase tabular-numbers">
+            AD
+          </div>
+          <div>
+            <p class="font-semibold text-[#FAF9F7]">Admin Cafetería</p>
+            <p class="text-[10px] text-coffee-muted font-medium tracking-wide">Terminal Activa #02</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- PANEL CENTRAL DE CONTENIDO -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      
+      <!-- HEADER GLOBAL DEL DASHBOARD -->
+      <header class="bg-white border-b border-coffee-border/40 px-8 py-5 flex items-center justify-between shrink-0">
+        <div>
+          <div class="flex items-center gap-2 text-xs text-coffee-muted font-semibold tracking-wider uppercase">
+            <span>Control y Operaciones</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-coffee-border"></span>
+            <span id="header-breadcrumb" class="text-coffee-dark font-bold">Inicio</span>
+          </div>
+          <h1 id="header-title" class="font-serif text-2xl font-bold tracking-tight text-coffee-ink mt-1">Dashboard Administrativo</h1>
+        </div>
+
+        <!-- Fecha, hora y estatus de servicio en tiempo real -->
+        <div class="flex items-center gap-6">
+          <div class="text-right hidden sm:block">
+            <p id="live-date" class="text-xs text-coffee-muted font-medium">Cargando fecha...</p>
+            <p id="live-time" class="text-base font-bold text-coffee-ink tracking-tight tabular-numbers">00:00:00</p>
+          </div>
+
+          <!-- Estado Operativo de la Tienda -->
+          <div class="bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-xl flex items-center gap-2.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-600 status-pulse"></span>
+            <div class="text-left">
+              <p class="text-[10px] font-bold text-emerald-800 uppercase tracking-widest leading-none">Establecimiento</p>
+              <p class="text-xs font-semibold text-emerald-900 mt-0.5 leading-none">En Servicio</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- SECCIÓN PRINCIPAL CONFIGURABLE (TAB VIEW) -->
+      <div class="flex-1 overflow-y-auto p-8 space-y-8" id="tab-container">
+        
+        <!-- PESTAÑA 1: INICIO (DASHBOARD GENERAL) -->
+        <div id="tab-inicio" class="tab-content space-y-8">
+          
+          <!-- FILA DE TARJETAS DE RESUMEN (MÉTRICAS) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <!-- TARJETA 1: VENTAS DEL DÍA -->
+            <div class="bg-white border border-coffee-border/40 p-6 rounded-2xl shadow-[0_4px_16px_rgba(74,53,37,0.03)] hover:shadow-[0_8px_24px_rgba(74,53,37,0.06)] transition-all duration-300 relative overflow-hidden group">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="text-[11px] font-bold text-coffee-muted tracking-wider uppercase">Ventas del Día (S/.)</p>
+                  <h3 id="kpi-ventas" class="font-serif text-3xl font-bold text-coffee-ink tracking-tight tabular-numbers mt-3">S/. 1,240.00</h3>
+                </div>
+                <div class="bg-coffee-light/60 p-2.5 rounded-xl border border-coffee-border/30 text-coffee-dark group-hover:scale-110 transition-transform duration-300">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.559c.43.274.96.274 1.39 0l.879-.559M9 9.818l.879-.559c.43-.274.96-.274 1.39 0l.879.559M12 3a9 9 0 110 18 9 9 0 010-18z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="mt-4 flex items-center gap-1.5 text-xs">
+                <span class="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md flex items-center gap-0.5">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" /></svg>
+                  +14.8%
+                </span>
+                <span class="text-coffee-muted">comparado con ayer</span>
+              </div>
+            </div>
+
+            <!-- TARJETA 2: PEDIDOS PROCESADOS -->
+            <div class="bg-white border border-coffee-border/40 p-6 rounded-2xl shadow-[0_4px_16px_rgba(74,53,37,0.03)] hover:shadow-[0_8px_24px_rgba(74,53,37,0.06)] transition-all duration-300 relative overflow-hidden group">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="text-[11px] font-bold text-coffee-muted tracking-wider uppercase">Pedidos Procesados</p>
+                  <h3 id="kpi-pedidos" class="font-serif text-3xl font-bold text-coffee-ink tracking-tight tabular-numbers mt-3">42</h3>
+                </div>
+                <div class="bg-coffee-light/60 p-2.5 rounded-xl border border-coffee-border/30 text-coffee-dark group-hover:scale-110 transition-transform duration-300">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="mt-4 flex items-center gap-1.5 text-xs">
+                <span class="font-semibold text-coffee-muted">Ticket promedio:</span>
+                <span class="font-bold text-coffee-ink tabular-numbers">S/. 29.50</span>
+              </div>
+            </div>
+
+            <!-- TARJETA 3: INSUMOS EN ALERTA -->
+            <div onclick="switchTab('alertas')" class="cursor-pointer bg-white border border-coffee-border/40 p-6 rounded-2xl shadow-[0_4px_16px_rgba(74,53,37,0.03)] hover:shadow-[0_8px_24px_rgba(74,53,37,0.06)] transition-all duration-300 relative overflow-hidden group">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="text-[11px] font-bold text-coffee-muted tracking-wider uppercase">Insumos en Alerta</p>
+                  <h3 id="kpi-alertas" class="font-serif text-3xl font-bold text-rose-600 tracking-tight tabular-numbers mt-3">2</h3>
+                </div>
+                <div id="kpi-alertas-icon-container" class="bg-rose-50 text-rose-600 p-2.5 rounded-xl border border-rose-200 group-hover:scale-110 transition-transform duration-300">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="mt-4 flex items-center gap-1.5 text-xs">
+                <span class="font-semibold text-rose-600 flex items-center gap-1" id="kpi-alertas-footer">
+                  <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span>
+                  Requiere reabastecimiento
+                </span>
+              </div>
+            </div>
+
+            <!-- TARJETA 4: ESTADO DEL SERVIDOR -->
+            <div class="bg-white border border-coffee-border/40 p-6 rounded-2xl shadow-[0_4px_16px_rgba(74,53,37,0.03)] hover:shadow-[0_8px_24px_rgba(74,53,37,0.06)] transition-all duration-300 relative overflow-hidden group">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="text-[11px] font-bold text-coffee-muted tracking-wider uppercase">Estado del Servidor</p>
+                  <h3 class="font-serif text-3xl font-bold text-emerald-600 tracking-tight mt-3">Activo</h3>
+                </div>
+                <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl border border-emerald-200 group-hover:scale-110 transition-transform duration-300">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a3.75 3.75 0 00.75 2.25m19.5-2.25a3.75 3.75 0 01-.75 2.25m-1.5-10.5H5.25m13.5 0a3 3 0 00-3-3m3 3a3 3 0 110 6h-13.5a3 3 0 110-6m15 0a3.75 3.75 0 00-.75-2.25M4.5 5.25a3.75 3.75 0 01.75-2.25M12 18.75h.008v.008H12v-.008zm0-6h.008v.008H12v-.008z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="mt-4 flex justify-between items-center text-xs">
+                <span class="text-coffee-muted">Latencia POS: <span class="font-bold text-coffee-ink tabular-numbers" id="server-latency">12ms</span></span>
+                <span class="text-[10px] text-emerald-700 font-bold tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md uppercase">Nube local</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SECCIÓN DE DOS COLUMNAS PRINCIPALES -->
+          <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            
+            <!-- COLUMNA IZQUIERDA: GESTIÓN DE STOCK (INVENTARIO) -->
+            <div class="xl:col-span-7 bg-white border border-coffee-border/40 rounded-3xl p-6 shadow-[0_4px_16px_rgba(74,53,37,0.03)] flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-center mb-6">
+                  <div>
+                    <h2 class="font-serif text-xl font-bold text-coffee-ink tracking-tight">Módulo de Gestión de Stock</h2>
+                    <p class="text-xs text-coffee-muted mt-1">Insumos críticos y control de stock mínimo en tiempo real</p>
+                  </div>
+                  <button onclick="switchTab('inventario')" class="text-xs font-semibold text-coffee-dark hover:text-coffee-accent border border-coffee-border/60 hover:bg-coffee-light/50 px-3.5 py-2 rounded-xl transition-all duration-200">
+                    Ver Inventario Completo
+                  </button>
+                </div>
+
+                <!-- Tabla de Stock -->
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="border-b border-coffee-border/30 text-[11px] font-bold text-coffee-muted uppercase tracking-wider">
+                        <th class="pb-3.5 pl-2">Insumo</th>
+                        <th class="pb-3.5 text-right">Cantidad Actual</th>
+                        <th class="pb-3.5 pl-6">Unidad</th>
+                        <th class="pb-3.5 pl-4">Estado</th>
+                        <th class="pb-3.5 pr-2 text-center">Acciones rápidas</th>
+                      </tr>
+                    </thead>
+                    <tbody id="inventory-list-dashboard" class="divide-y divide-coffee-border/10 text-sm">
+                      <!-- Renderizado dinámicamente mediante JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <!-- Información de alerta automática del inventario -->
+              <div class="mt-6 pt-4 border-t border-coffee-border/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-coffee-muted bg-coffee-light/25 p-4 rounded-xl">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-rose-600 status-pulse"></span>
+                  <span class="font-medium">El sistema alerta automáticamente al caer por debajo del umbral crítico.</span>
+                </div>
+                <div class="flex gap-4">
+                  <span>Espresso: <strong class="text-coffee-ink font-bold tabular-numbers">&le; 5kg</strong></span>
+                  <span>Jarabe: <strong class="text-coffee-ink font-bold tabular-numbers">&le; 3bot</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: FACTURACIÓN TRANSACCIONAL + REGISTRO RÁPIDO -->
+            <div class="xl:col-span-5 flex flex-col gap-8">
+              
+              <!-- POS RÁPIDO: REGISTRAR PEDIDO -->
+              <div class="bg-white border border-coffee-border/40 rounded-3xl p-6 shadow-[0_4px_16px_rgba(74,53,37,0.03)]">
+                <div class="flex justify-between items-center mb-4">
+                  <div>
+                    <h2 class="font-serif text-lg font-bold text-coffee-ink tracking-tight">Venta Rápida (POS)</h2>
+                    <p class="text-xs text-coffee-muted mt-0.5">Registra un pedido y deduce stock en tiempo real</p>
+                  </div>
+                  <span class="text-[10px] font-bold bg-[#FAF9F7] text-coffee-dark border border-coffee-border/50 px-2 py-0.5 rounded uppercase tracking-widest">Mesa táctil</span>
+                </div>
+
+                <!-- Parrilla de productos interactivos -->
+                <div class="grid grid-cols-3 gap-2.5 mb-4">
+                  <button onclick="selectProduct('espresso')" id="pos-product-espresso" class="p-2.5 border border-coffee-border/40 hover:border-coffee-dark/60 rounded-xl bg-[#FAF9F7] hover:bg-white text-center transition-all group flex flex-col items-center">
+                    <span class="text-xl">☕</span>
+                    <span class="font-semibold text-xs text-coffee-ink group-hover:text-coffee-dark mt-1">Espresso</span>
+                    <span class="text-[11px] text-coffee-muted font-bold tracking-tight tabular-numbers mt-0.5">S/. 8.00</span>
+                  </button>
+                  <button onclick="selectProduct('latte')" id="pos-product-latte" class="p-2.5 border border-coffee-border/40 hover:border-coffee-dark/60 rounded-xl bg-[#FAF9F7] hover:bg-white text-center transition-all group flex flex-col items-center">
+                    <span class="text-xl">🥛</span>
+                    <span class="font-semibold text-xs text-coffee-ink group-hover:text-coffee-dark mt-1">Café Latte</span>
+                    <span class="text-[11px] text-coffee-muted font-bold tracking-tight tabular-numbers mt-0.5">S/. 11.00</span>
+                  </button>
+                  <button onclick="selectProduct('vainilla')" id="pos-product-vainilla" class="p-2.5 border border-coffee-border/40 hover:border-coffee-dark/60 rounded-xl bg-[#FAF9F7] hover:bg-white text-center transition-all group flex flex-col items-center">
+                    <span class="text-xl">🍯</span>
+                    <span class="font-semibold text-xs text-coffee-ink group-hover:text-coffee-dark mt-1">L. Vainilla</span>
+                    <span class="text-[11px] text-coffee-muted font-bold tracking-tight tabular-numbers mt-0.5">S/. 13.00</span>
+                  </button>
+                </div>
+
+                <!-- Detalle y controles del pedido actual -->
+                <div id="pos-cart-panel" class="bg-coffee-light/20 border border-coffee-border/25 rounded-2xl p-4 space-y-3.5">
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-coffee-muted font-medium">Producto: <strong id="cart-product-name" class="text-coffee-ink font-bold">Ninguno seleccionado</strong></span>
+                    <div class="flex items-center gap-1.5">
+                      <button onclick="updateCartQuantity(-1)" class="w-6 h-6 rounded-md bg-white border border-coffee-border/50 font-bold flex items-center justify-center text-xs hover:bg-coffee-light/60">-</button>
+                      <span id="cart-product-qty" class="font-bold text-sm w-4 text-center tabular-numbers">1</span>
+                      <button onclick="updateCartQuantity(1)" class="w-6 h-6 rounded-md bg-white border border-coffee-border/50 font-bold flex items-center justify-center text-xs hover:bg-coffee-light/60">+</button>
+                    </div>
+                  </div>
+
+                  <!-- Mesa y Método de Pago -->
+                  <div class="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label class="block text-[10px] font-bold text-coffee-muted uppercase tracking-wider mb-1">Mesa</label>
+                      <select id="pos-table" class="w-full bg-white border border-coffee-border/40 text-xs px-2.5 py-1.5 rounded-lg text-coffee-ink font-medium focus:outline-none focus:border-coffee-dark">
+                        <option value="Mesa 1">Mesa 1</option>
+                        <option value="Mesa 4">Mesa 4</option>
+                        <option value="Mesa 7">Mesa 7</option>
+                        <option value="Mesa 12">Mesa 12</option>
+                        <option value="Barra 1">Barra 1</option>
+                        <option value="Barra 2">Barra 2</option>
+                        <option value="Para Llevar">Para Llevar</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-bold text-coffee-muted uppercase tracking-wider mb-1">Pago</label>
+                      <select id="pos-payment" class="w-full bg-white border border-coffee-border/40 text-xs px-2.5 py-1.5 rounded-lg text-coffee-ink font-medium focus:outline-none focus:border-coffee-dark">
+                        <option value="Tarjeta">Tarjeta</option>
+                        <option value="Efectivo">Efectivo</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Total y Enviar -->
+                  <div class="pt-3 border-t border-coffee-border/30 flex justify-between items-center">
+                    <div>
+                      <p class="text-[10px] text-coffee-muted uppercase font-bold leading-none">Total Pedido</p>
+                      <p class="text-lg font-bold text-coffee-ink tracking-tight tabular-numbers mt-1" id="cart-total">S/. 0.00</p>
+                    </div>
+                    <button onclick="checkoutOrder()" class="bg-coffee-dark hover:bg-coffee-accent text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95">
+                      Registrar Pedido
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- MÓDULO DE FACTURACIÓN TRANSACCIONAL (LISTADO DE ÚLTIMAS TRANSACCIONES EN TIEMPO REAL) -->
+              <div class="bg-white border border-coffee-border/40 rounded-3xl p-6 shadow-[0_4px_16px_rgba(74,53,37,0.03)] flex-1 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center mb-4">
+                    <div>
+                      <h2 class="font-serif text-lg font-bold text-coffee-ink tracking-tight">Módulo de Facturación Transaccional</h2>
+                      <p class="text-xs text-coffee-muted mt-0.5">Últimas transacciones procesadas en tiempo real</p>
+                    </div>
+                    <button onclick="switchTab('facturacion')" class="text-xs font-bold text-[#8D7A68] hover:text-[#4A3525] flex items-center gap-1 group">
+                      Detalles
+                      <svg class="w-4.5 h-4.5 group-hover:translate-x-0.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <!-- Lista de Transacciones -->
+                  <div class="space-y-2.5" id="dashboard-transaction-list">
+                    <!-- Dinámico por JS -->
+                  </div>
+                </div>
+
+                <div class="mt-4 pt-3.5 border-t border-coffee-border/20 text-center">
+                  <p class="text-[11px] text-coffee-muted">Haz clic sobre un estado <span class="font-semibold text-amber-600">Pendiente</span> para marcarlo como <span class="font-semibold text-emerald-600">Completado</span>.</p>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- PESTAÑA 2: INVENTARIO COMPLETO -->
+        <div id="tab-inventario" class="tab-content space-y-6 hidden">
+          <div class="bg-white border border-coffee-border/40 rounded-3xl p-8 shadow-[0_4px_16px_rgba(74,53,37,0.03)]">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+              <div>
+                <h2 class="font-serif text-2xl font-bold text-coffee-ink">Inventario de la Cafetería</h2>
+                <p class="text-sm text-coffee-muted mt-1">Supervisión, edición y alertas avanzadas de materias primas e insumos</p>
+              </div>
+
+              <!-- Filtro de estado del inventario -->
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-coffee-muted font-medium">Filtrar por:</span>
+                <button onclick="filterInventory('all')" id="btn-inv-filter-all" class="text-xs px-4 py-2 rounded-xl border border-coffee-dark/80 bg-coffee-dark text-white font-semibold transition-all">
+                  Todos
+                </button>
+                <button onclick="filterInventory('low')" id="btn-inv-filter-low" class="text-xs px-4 py-2 rounded-xl border border-coffee-border text-coffee-muted hover:text-coffee-dark hover:bg-coffee-light/30 font-semibold transition-all flex items-center gap-1.5">
+                  Stock Bajo 
+                  <span id="inventory-low-filter-badge" class="px-1.5 py-0.5 text-[10px] rounded-full bg-rose-600 text-white font-bold leading-none">0</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla principal de inventario extendido -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-coffee-border/40 text-xs font-bold text-coffee-muted uppercase tracking-wider">
+                    <th class="pb-4 pl-4">Insumo / Ingrediente</th>
+                    <th class="pb-4 text-right">Cantidad de Stock</th>
+                    <th class="pb-4 pl-8">Unidad de Medida</th>
+                    <th class="pb-4 pl-6">Punto Crítico</th>
+                    <th class="pb-4 pl-6">Estado</th>
+                    <th class="pb-4 text-center">Gestión de cantidad</th>
+                    <th class="pb-4 pr-4 text-right">Acción recomendada</th>
+                  </tr>
+                </thead>
+                <tbody id="full-inventory-list" class="divide-y divide-coffee-border/15 text-sm">
+                  <!-- Dinámico por JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Sección de reabastecimiento simulado -->
+            <div class="mt-8 pt-6 border-t border-coffee-border/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p class="text-xs text-coffee-muted max-width-[60ch]">
+                ¿Reabastecimiento de insumos entregado por el proveedor? Haz clic en reabastecer para simular la llegada de un lote completo de forma rápida.
+              </p>
+              <button onclick="simulateRestockAll()" class="bg-coffee-dark hover:bg-coffee-accent text-[#FAF9F7] px-6 py-3 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                Reabastecer Todos los Insumos Bajos
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 3: FACTURACIÓN DETALLADA -->
+        <div id="tab-facturacion" class="tab-content space-y-6 hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- TARJETA INFORMATIVA: MÉTODO DE PAGO Y VENTAS -->
+            <div class="lg:col-span-1 bg-white border border-coffee-border/40 rounded-3xl p-6 shadow-[0_4px_16px_rgba(74,53,37,0.03)] space-y-6">
+              <div>
+                <h3 class="font-serif text-lg font-bold text-coffee-ink">Distribución de Ingresos</h3>
+                <p class="text-xs text-coffee-muted mt-1">Suma por cada método de facturación</p>
+              </div>
+
+              <!-- Distribución visual de barra -->
+              <div class="space-y-4">
+                <div>
+                  <div class="flex justify-between items-center text-xs mb-1.5">
+                    <span class="font-semibold text-coffee-dark flex items-center gap-1.5">
+                      <span class="w-2.5 h-2.5 rounded bg-amber-800"></span> Tarjeta de Crédito/Débito
+                    </span>
+                    <span class="font-bold tabular-numbers" id="pago-tarjeta-total">S/. 0.00</span>
+                  </div>
+                  <div class="w-full bg-coffee-light/50 h-2.5 rounded-full overflow-hidden">
+                    <div id="pago-tarjeta-progress" class="bg-amber-800 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between items-center text-xs mb-1.5">
+                    <span class="font-semibold text-coffee-dark flex items-center gap-1.5">
+                      <span class="w-2.5 h-2.5 rounded bg-coffee-muted"></span> Efectivo
+                    </span>
+                    <span class="font-bold tabular-numbers" id="pago-efectivo-total">S/. 0.00</span>
+                  </div>
+                  <div class="w-full bg-coffee-light/50 h-2.5 rounded-full overflow-hidden">
+                    <div id="pago-efectivo-progress" class="bg-coffee-muted h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-4 border-t border-coffee-border/30">
+                <div class="p-4 bg-coffee-light/20 rounded-2xl space-y-2">
+                  <h4 class="text-xs font-bold text-coffee-dark uppercase tracking-wider">Ticket Promedio del Día</h4>
+                  <p class="text-2xl font-serif font-bold text-coffee-ink tabular-numbers" id="kpi-ticket-promedio">S/. 29.52</p>
+                  <p class="text-[11px] text-coffee-muted">Calculado en base a pedidos procesados y confirmados hoy.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- TABLA Y CONTROL DE FACTURACIÓN TRANSACCIONAL EXTENDIDO -->
+            <div class="lg:col-span-2 bg-white border border-coffee-border/40 rounded-3xl p-6 shadow-[0_4px_16px_rgba(74,53,37,0.03)] flex flex-col justify-between">
+              <div>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                  <div>
+                    <h2 class="font-serif text-xl font-bold text-coffee-ink">Historial de Transacciones</h2>
+                    <p class="text-xs text-coffee-muted mt-0.5">Auditoría en tiempo real y conciliación de caja diaria</p>
+                  </div>
+                  
+                  <!-- Controles de filtrado de transacciones -->
+                  <div class="flex gap-1">
+                    <button onclick="filterTransactions('all')" id="tx-filter-all" class="text-[11px] font-bold px-3 py-1.5 rounded-lg border border-coffee-dark bg-coffee-dark text-white transition-all">
+                      Todos
+                    </button>
+                    <button onclick="filterTransactions('Completado')" id="tx-filter-completed" class="text-[11px] font-bold px-3 py-1.5 rounded-lg border border-coffee-border text-coffee-muted hover:text-coffee-ink hover:bg-coffee-light/20 transition-all">
+                      Completados
+                    </button>
+                    <button onclick="filterTransactions('Pendiente')" id="tx-filter-pending" class="text-[11px] font-bold px-3 py-1.5 rounded-lg border border-coffee-border text-coffee-muted hover:text-coffee-ink hover:bg-coffee-light/20 transition-all">
+                      Pendientes
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Buscador rápido en tabla de facturas -->
+                <div class="mb-4 relative">
+                  <input oninput="searchTransactions(this.value)" type="text" placeholder="Buscar transacción por ID o Mesa..." class="w-full text-xs bg-app-bg border border-coffee-border/40 px-3.5 py-2.5 rounded-xl text-coffee-ink placeholder-coffee-muted/70 focus:outline-none focus:border-coffee-dark focus:bg-white transition-all">
+                  <div class="absolute right-3.5 top-2.5 text-coffee-muted">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Tabla de Facturación -->
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="border-b border-coffee-border/30 text-[11px] font-bold text-coffee-muted uppercase tracking-wider">
+                        <th class="pb-3.5 pl-2">ID Pedido</th>
+                        <th class="pb-3.5 pl-2">Mesa / Ubicación</th>
+                        <th class="pb-3.5 text-right">Monto Total</th>
+                        <th class="pb-3.5 pl-6">Método de Pago</th>
+                        <th class="pb-3.5 pl-4">Estado</th>
+                        <th class="pb-3.5 pr-2 text-right">Acción rápida</th>
+                      </tr>
+                    </thead>
+                    <tbody id="full-transaction-list" class="divide-y divide-coffee-border/10 text-sm">
+                      <!-- Dinámico por JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-coffee-border/20 text-right">
+                <button onclick="simulateNewTransactionIncoming()" class="text-xs font-bold text-coffee-dark hover:text-coffee-accent flex items-center gap-1.5 ml-auto bg-coffee-light/40 hover:bg-coffee-light/80 px-4 py-2.5 rounded-xl transition-all">
+                  <span>Simular Pedido de Cliente Externo</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PESTAÑA 4: CONSOLA DE ALERTAS -->
+        <div id="tab-alertas" class="tab-content space-y-6 hidden">
+          <div class="bg-white border border-coffee-border/40 rounded-3xl p-8 shadow-[0_4px_16px_rgba(74,53,37,0.03)]">
+            <div class="flex items-center justify-between mb-8 pb-4 border-b border-coffee-border/20">
+              <div>
+                <h2 class="font-serif text-2xl font-bold text-coffee-ink">Consola de Alertas del Establecimiento</h2>
+                <p class="text-sm text-coffee-muted mt-1">Supervisión operativa, estado del stock y alertas técnicas activas</p>
+              </div>
+              <span id="alerts-console-count-badge" class="px-3 py-1 text-sm font-bold bg-rose-50 text-rose-600 border border-rose-200 rounded-full">2 Alertas Activas</span>
+            </div>
+
+            <!-- Contenedor dinámico de alertas operativas -->
+            <div class="space-y-4" id="alerts-container">
+              <!-- Dinámico por JS -->
+            </div>
+
+            <!-- Recomendaciones generales de compras -->
+            <div class="mt-8 p-6 bg-coffee-light/20 rounded-2xl border border-coffee-border/30">
+              <h3 class="font-serif text-base font-bold text-coffee-ink mb-2">Procedimiento Estándar de Abastecimiento</h3>
+              <p class="text-xs text-coffee-muted leading-relaxed mb-4">
+                Para garantizar la frescura, el café en grano Espresso de especialidad se solicita con entrega express de 24 horas al proveedor local certificado. Al detectar un estado de <strong>Stock Bajo</strong>, proceda a contactar inmediatamente con la distribuidora.
+              </p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div class="bg-white p-3.5 rounded-xl border border-coffee-border/30">
+                  <p class="font-bold text-coffee-ink">Proveedor de Café de Especialidad</p>
+                  <p class="text-coffee-muted mt-1">Finca Fértil &bull; Distribuidor Autorizado</p>
+                  <p class="font-semibold text-coffee-dark mt-1">Teléfono: +51 987 654 321</p>
+                </div>
+                <div class="bg-white p-3.5 rounded-xl border border-coffee-border/30">
+                  <p class="font-bold text-coffee-ink">Proveedor de Desechables Compostables</p>
+                  <p class="text-coffee-muted mt-1">EcoEmbalajes Perú S.A.C.</p>
+                  <p class="font-semibold text-coffee-dark mt-1">Teléfono: +51 912 345 678</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- PANEL FLOTANTE DE AJUSTES / TWEAKS PARA DEMOSTRACIÓN -->
+  <div class="fixed bottom-6 left-6 z-40">
+    <div class="relative group">
+      <button class="bg-coffee-dark hover:bg-coffee-accent text-[#FAF9F7] w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 transform hover:rotate-45" title="Ajustes de Demo">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </button>
+
+      <!-- Menú expandido al pasar el ratón -->
+      <div class="absolute bottom-14 left-0 bg-white border border-coffee-border rounded-2xl w-64 p-4 opacity-0 scale-95 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 tweak-panel">
+        <h4 class="font-serif text-sm font-bold text-coffee-ink mb-1.5 border-b border-coffee-border/40 pb-1.5">Controles de Demostración</h4>
+        <div class="space-y-3 text-xs">
+          <div>
+            <p class="text-coffee-muted font-medium">Simular Operaciones:</p>
+            <div class="grid grid-cols-2 gap-1.5 mt-1.5">
+              <button onclick="simulateOrderFlow()" class="bg-coffee-light/60 hover:bg-coffee-light border border-coffee-border/50 text-coffee-dark font-bold py-1.5 px-2 rounded-lg transition-all text-[10px]">
+                Nuevo Pedido
+              </button>
+              <button onclick="simulateServerFluctuation()" class="bg-coffee-light/60 hover:bg-coffee-light border border-coffee-border/50 text-coffee-dark font-bold py-1.5 px-2 rounded-lg transition-all text-[10px]">
+                Lag de Red
+              </button>
+            </div>
+          </div>
+          <div>
+            <p class="text-coffee-muted font-medium">Valores por defecto (Persistidos):</p>
+            <div class="mt-1 bg-coffee-light/30 p-2 rounded-lg font-mono text-[9px] text-coffee-ink">
+              <pre id="tweak-defaults-display"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGICA INTERACTIVA DEL DASHBOARD Y SIMULACIÓN -->
+  <script>
+    // Configuración de valores por defecto configurables
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "minStockEspresso": 5.0,
+      "minStockLeche": 10.0,
+      "minStockJarabe": 3.0,
+      "minStockVasos": 100,
+      "posEspressoPrice": 8.00,
+      "posLattePrice": 11.00,
+      "posVainillaPrice": 13.00
+    }/*EDITMODE-END*/;
+
+    // Mostrar valores de demo
+    document.getElementById('tweak-defaults-display').textContent = JSON.stringify(TWEAK_DEFAULTS, null, 2);
+
+    // ESTADO GLOBAL DE LA APLICACIÓN
+    let activeTab = 'inicio';
+    let inventoryFilter = 'all';
+    let transactionFilter = 'all';
+    let transactionSearchTerm = '';
+    
+    // Base de datos simulada en memoria
+    let inventory = [
+      { id: 'espresso', name: 'Café en grano Espresso', qty: 4.2, unit: 'Kilogramos', threshold: TWEAK_DEFAULTS.minStockEspresso },
+      { id: 'leche', name: 'Leche Entera', qty: 24.0, unit: 'Litros', threshold: TWEAK_DEFAULTS.minStockLeche },
+      { id: 'jarabe', name: 'Jarabe de Vainilla', qty: 2.0, unit: 'Botellas', threshold: TWEAK_DEFAULTS.minStockJarabe },
+      { id: 'vasos', name: 'Vasos Compostables', qty: 350, unit: 'Unidades', threshold: TWEAK_DEFAULTS.minStockVasos }
+    ];
+
+    let transactions = [
+      { id: '1042', table: 'Mesa 4', amount: 34.00, method: 'Tarjeta', status: 'Completado', time: '11:45' },
+      { id: '1041', table: 'Barra 1', amount: 16.00, method: 'Efectivo', status: 'Completado', time: '11:32' },
+      { id: '1040', table: 'Mesa 12', amount: 48.00, method: 'Tarjeta', status: 'Pendiente', time: '11:15' },
+      { id: '1039', table: 'Mesa 7', amount: 22.00, method: 'Efectivo', status: 'Completado', time: '10:50' }
+    ];
+
+    // Datos del mini carrito de POS
+    let selectedPosProduct = null;
+    let selectedPosQty = 1;
+
+    // 1. INICIALIZAR LA APP
+    window.addEventListener('DOMContentLoaded', () => {
+      // Registrar hora en tiempo real
+      updateClock();
+      setInterval(updateClock, 1000);
+      
+      // Aplicar pestaña inicial
+      switchTab('inicio');
+
+      // Actualizar renderizado y KPIs
+      recalculateAndRender();
+    });
+
+    // 2. RELOJ DE TIEMPO REAL
+    function updateClock() {
+      const now = new Date();
+      
+      // Hora
+      const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      document.getElementById('live-time').textContent = timeStr;
+      
+      // Fecha elegante
+      const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const dateStr = now.toLocaleDateString('es-ES', dateOptions);
+      // Capitalizar primer letra
+      document.getElementById('live-date').textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+    }
+
+    // 3. TOAST FLOTANTE DE NOTIFICACIÓN
+    function showToast(message, icon = '☕') {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+      
+      toastMessage.textContent = message;
+      toastIcon.textContent = icon;
+      
+      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      
+      // Esconder tras 3 segundos
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+      }, 3000);
+    }
+
+    // 4. CAMBIO DE PESTAÑAS (TABS)
+    function switchTab(tabId) {
+      activeTab = tabId;
+      
+      // Actualizar clases de botones de la barra lateral
+      const tabs = ['inicio', 'inventario', 'facturacion', 'alertas'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`btn-tab-${t}`);
+        if (t === tabId) {
+          btn.classList.add('bg-white/10', 'text-[#E2DACD]', 'border-l-4', 'border-[#E2DACD]', 'rounded-l-none');
+          btn.classList.remove('text-white/70');
+        } else {
+          btn.classList.remove('bg-white/10', 'text-[#E2DACD]', 'border-l-4', 'border-[#E2DACD]', 'rounded-l-none');
+          btn.classList.add('text-white/70');
+        }
+      });
+
+      // Switchear contenedores HTML de pestañas
+      tabs.forEach(t => {
+        const section = document.getElementById(`tab-${t}`);
+        if (t === tabId) {
+          section.classList.remove('hidden');
+          section.classList.add('block');
+        } else {
+          section.classList.remove('block');
+          section.classList.add('hidden');
+        }
+      });
+
+      // Actualizar breadcrumb y titulo superior
+      const breadcrumb = document.getElementById('header-breadcrumb');
+      const title = document.getElementById('header-title');
+      
+      if (tabId === 'inicio') {
+        breadcrumb.textContent = 'Inicio';
+        title.textContent = 'Panel de Control General';
+      } else if (tabId === 'inventario') {
+        breadcrumb.textContent = 'Inventario';
+        title.textContent = 'Gestión y Control de Stock';
+      } else if (tabId === 'facturacion') {
+        breadcrumb.textContent = 'Facturación';
+        title.textContent = 'Historial y Auditoría de Ventas';
+      } else if (tabId === 'alertas') {
+        breadcrumb.textContent = 'Alertas';
+        title.textContent = 'Consola de Alertas Operativas';
+      }
+
+      recalculateAndRender();
+    }
+
+    // 5. EVALUAR ALERTAS Y ESTADÍSTICAS DEL SISTEMA
+    function recalculateAndRender() {
+      // Contar insumos bajo stock crítico
+      let alertCount = 0;
+      inventory.forEach(item => {
+        if (item.qty <= item.threshold) {
+          alertCount++;
+        }
+      });
+
+      // Actualizar KPI y badge lateral
+      document.getElementById('kpi-alertas').textContent = alertCount;
+      const alertBadge = document.getElementById('sidebar-alert-badge');
+      const consoleAlertBadge = document.getElementById('alerts-console-count-badge');
+      
+      if (alertCount > 0) {
+        alertBadge.textContent = alertCount;
+        alertBadge.classList.remove('hidden');
+        
+        if (consoleAlertBadge) {
+          consoleAlertBadge.textContent = `${alertCount} Alertas Activas`;
+          consoleAlertBadge.className = "px-3 py-1 text-sm font-bold bg-rose-50 text-rose-600 border border-rose-200 rounded-full";
+        }
+
+        // Cambiar estilo de la tarjeta KPI Alertas
+        const kpiCardIcon = document.getElementById('kpi-alertas-icon-container');
+        const kpiCardFooter = document.getElementById('kpi-alertas-footer');
+        kpiCardIcon.className = "bg-rose-50 text-rose-600 p-2.5 rounded-xl border border-rose-200 group-hover:scale-110 transition-transform duration-300";
+        kpiCardFooter.className = "font-semibold text-rose-600 flex items-center gap-1";
+        kpiCardFooter.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping"></span> Requiere reabastecimiento`;
+      } else {
+        alertBadge.classList.add('hidden');
+        if (consoleAlertBadge) {
+          consoleAlertBadge.textContent = "Cero Alertas Activas";
+          consoleAlertBadge.className = "px-3 py-1 text-sm font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full";
+        }
+
+        const kpiCardIcon = document.getElementById('kpi-alertas-icon-container');
+        const kpiCardFooter = document.getElementById('kpi-alertas-footer');
+        kpiCardIcon.className = "bg-emerald-50 text-emerald-600 p-2.5 rounded-xl border border-emerald-200 group-hover:scale-110 transition-transform duration-300";
+        kpiCardFooter.className = "font-semibold text-emerald-600 flex items-center gap-1";
+        kpiCardFooter.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Todo en orden`;
+      }
+
+      // Calcular montos de ventas totales
+      let totalSales = 0;
+      let totalCardSales = 0;
+      let totalCashSales = 0;
+      let processedCount = 0;
+
+      transactions.forEach(tx => {
+        // Contar todas como procesadas pero sumar montos según estado
+        processedCount++;
+        totalSales += tx.amount;
+        if (tx.method === 'Tarjeta') {
+          totalCardSales += tx.amount;
+        } else {
+          totalCashSales += tx.amount;
+        }
+      });
+
+      // Renderizar KPIs financieros
+      document.getElementById('kpi-ventas').textContent = `S/. ${totalSales.toFixed(2)}`;
+      document.getElementById('kpi-pedidos').textContent = processedCount;
+
+      // Actualizar Distribución de Ingresos (Pestaña Facturación)
+      document.getElementById('pago-tarjeta-total').textContent = `S/. ${totalCardSales.toFixed(2)}`;
+      document.getElementById('pago-efectivo-total').textContent = `S/. ${totalCashSales.toFixed(2)}`;
+      
+      const pctCard = totalSales > 0 ? (totalCardSales / totalSales) * 100 : 0;
+      const pctCash = totalSales > 0 ? (totalCashSales / totalSales) * 100 : 0;
+      
+      document.getElementById('pago-tarjeta-progress').style.width = `${pctCard}%`;
+      document.getElementById('pago-efectivo-progress').style.width = `${pctCash}%`;
+
+      const ticketAverage = processedCount > 0 ? totalSales / processedCount : 0;
+      document.getElementById('kpi-ticket-promedio').textContent = `S/. ${ticketAverage.toFixed(2)}`;
+
+      // Actualizar badge del filtro de inventario completo
+      const lowFilterBadge = document.getElementById('inventory-low-filter-badge');
+      if (lowFilterBadge) {
+        lowFilterBadge.textContent = alertCount;
+      }
+
+      // RENDERIZADOS ESPECÍFICOS DE VISTAS
+      renderDashboardInventory();
+      renderDashboardTransactions();
+      renderFullInventory();
+      renderFullTransactions();
+      renderAlertsConsole();
+    }
+
+    // 6. RENDER DE INVENTARIO EN INICIO (DASHBOARD)
+    function renderDashboardInventory() {
+      const container = document.getElementById('inventory-list-dashboard');
+      if (!container) return;
+
+      container.innerHTML = '';
+      
+      inventory.forEach(item => {
+        const isLow = item.qty <= item.threshold;
+        const statusBadge = isLow 
+          ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-rose-600 text-white shadow-sm">Stock Bajo</span>`
+          : `<span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-coffee-light text-coffee-dark border border-coffee-border/40">Normal</span>`;
+
+        const row = document.createElement('tr');
+        row.className = "hover:bg-coffee-light/10 transition-colors duration-150";
+        row.innerHTML = `
+          <td class="py-4 pl-2 font-semibold text-coffee-ink">${item.name}</td>
+          <td class="py-4 text-right tabular-numbers font-bold text-coffee-ink">${item.qty.toFixed(1)}</td>
+          <td class="py-4 pl-6 text-coffee-muted font-medium">${item.unit}</td>
+          <td class="py-4 pl-4">${statusBadge}</td>
+          <td class="py-4 text-center">
+            <div class="inline-flex items-center gap-1 bg-white border border-coffee-border/40 rounded-lg p-0.5 shadow-sm">
+              <button onclick="changeStock('${item.id}', -0.5)" class="w-7 h-7 font-bold text-coffee-dark hover:bg-coffee-light/50 active:bg-coffee-light rounded flex items-center justify-center transition-all" title="Reducir stock">-</button>
+              <button onclick="changeStock('${item.id}', 0.5)" class="w-7 h-7 font-bold text-coffee-dark hover:bg-coffee-light/50 active:bg-coffee-light rounded flex items-center justify-center transition-all" title="Aumentar stock">+</button>
+            </div>
+          </td>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // 7. RENDER DE TRANSACCIONES EN INICIO (DASHBOARD)
+    function renderDashboardTransactions() {
+      const container = document.getElementById('dashboard-transaction-list');
+      if (!container) return;
+
+      container.innerHTML = '';
+      
+      // Mostrar las últimas 4 transacciones
+      const recent = transactions.slice(0, 4);
+
+      recent.forEach(tx => {
+        const isCompleted = tx.status === 'Completado';
+        const statusClass = isCompleted
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+          : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100';
+
+        const card = document.createElement('div');
+        card.className = "flex items-center justify-between p-3.5 border border-coffee-border/30 rounded-xl bg-white hover:border-coffee-border transition-all duration-150";
+        card.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-coffee-light/35 flex items-center justify-center font-bold text-xs text-coffee-dark border border-coffee-border/40 tabular-numbers">
+              #${tx.id}
+            </div>
+            <div>
+              <p class="font-bold text-sm text-coffee-ink">${tx.table}</p>
+              <p class="text-[10px] text-coffee-muted font-medium tabular-numbers">Hora: ${tx.time} &bull; ${tx.method}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="font-bold text-sm text-coffee-ink tabular-numbers">S/. ${tx.amount.toFixed(2)}</span>
+            <button onclick="toggleTransactionStatus('${tx.id}')" class="text-xs px-3 py-1 font-bold rounded-lg border cursor-pointer transition-all ${statusClass}">
+              ${tx.status}
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // 8. RENDER DE INVENTARIO EXTENDIDO (PESTAÑA COMPLETA)
+    function renderFullInventory() {
+      const container = document.getElementById('full-inventory-list');
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      inventory.forEach(item => {
+        const isLow = item.qty <= item.threshold;
+        
+        // Filtro de inventario
+        if (inventoryFilter === 'low' && !isLow) return;
+
+        const statusBadge = isLow 
+          ? `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-rose-600 text-white shadow-sm">Stock Bajo</span>`
+          : `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-coffee-light text-coffee-dark border border-coffee-border/40">Normal</span>`;
+
+        const actionText = isLow 
+          ? `<button onclick="orderStockSimulated('${item.id}')" class="text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 hover:border-rose-300 py-1.5 px-3 rounded-lg transition-all">Solicitar Pedido</button>`
+          : `<span class="text-xs text-[#8D7A68]">Suficiente</span>`;
+
+        const row = document.createElement('tr');
+        row.className = "hover:bg-coffee-light/5 transition-colors duration-150";
+        row.innerHTML = `
+          <td class="py-4 pl-4">
+            <div class="font-bold text-coffee-ink">${item.name}</div>
+            <div class="text-[11px] text-coffee-muted font-medium mt-0.5">ID Insumo: ins-${item.id}</div>
+          </td>
+          <td class="py-4 text-right tabular-numbers font-bold text-coffee-ink text-base">${item.qty.toFixed(1)}</td>
+          <td class="py-4 pl-8 text-coffee-muted font-medium">${item.unit}</td>
+          <td class="py-4 pl-6 font-bold text-coffee-ink tabular-numbers">&le; ${item.threshold}</td>
+          <td class="py-4 pl-6">${statusBadge}</td>
+          <td class="py-4 text-center">
+            <div class="inline-flex items-center gap-1 bg-white border border-coffee-border/40 rounded-lg p-0.5 shadow-sm">
+              <button onclick="changeStock('${item.id}', -1)" class="w-8 h-8 font-bold text-coffee-dark hover:bg-coffee-light/50 active:bg-coffee-light rounded flex items-center justify-center transition-all">-1</button>
+              <button onclick="changeStock('${item.id}', -0.1)" class="w-8 h-8 font-semibold text-coffee-muted hover:bg-coffee-light/50 active:bg-coffee-light rounded flex items-center justify-center text-xs transition-all">-0.1</button>
+              <button onclick="changeStock('${item.id}', 0.1)" class="w-8 h-8 font-semibold text-coffee-muted hover:bg-coffee-light/50 active:bg-coffee-light rounded flex items-center justify-center text-xs transition-all">+0.1</button>
+              <button onclick="changeStock('${item.id}', 1)" class="w-8 h-8 font-bold text-coffee-dark hover:bg-coffee-light/50 active:bg-coffee-light rounded flex items-center justify-center transition-all">+1</button>
+            </div>
+          </td>
+          <td class="py-4 pr-4 text-right">${actionText}</td>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // 9. RENDER DE TRANSACCIONES EXTENDIDAS (PESTAÑA COMPLETA)
+    function renderFullTransactions() {
+      const container = document.getElementById('full-transaction-list');
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      let filtered = transactions;
+
+      // Filtro de estado
+      if (transactionFilter !== 'all') {
+        filtered = filtered.filter(tx => tx.status === transactionFilter);
+      }
+
+      // Filtro de buscador
+      if (transactionSearchTerm.trim() !== '') {
+        const query = transactionSearchTerm.toLowerCase();
+        filtered = filtered.filter(tx => 
+          tx.id.includes(query) || 
+          tx.table.toLowerCase().includes(query)
+        );
+      }
+
+      filtered.forEach(tx => {
+        const isCompleted = tx.status === 'Completado';
+        const statusClass = isCompleted
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+          : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100';
+
+        const row = document.createElement('tr');
+        row.className = "hover:bg-coffee-light/10 transition-colors duration-150";
+        row.innerHTML = `
+          <td class="py-4 pl-2 font-bold text-coffee-dark tabular-numbers">#${tx.id}</td>
+          <td class="py-4 pl-2 font-semibold text-coffee-ink">${tx.table}</td>
+          <td class="py-4 text-right font-bold text-coffee-ink tabular-numbers">S/. ${tx.amount.toFixed(2)}</td>
+          <td class="py-4 pl-6 text-coffee-muted font-medium">${tx.method}</td>
+          <td class="py-4 pl-4">
+            <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-md border ${isCompleted ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">
+              ${tx.status}
+            </span>
+          </td>
+          <td class="py-4 pr-2 text-right">
+            <button onclick="toggleTransactionStatus('${tx.id}')" class="text-xs font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${statusClass}">
+              Cambiar a ${isCompleted ? 'Pendiente' : 'Completado'}
+            </button>
+          </td>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // 10. RENDER DE LA CONSOLA DE ALERTAS DEL SISTEMA
+    function renderAlertsConsole() {
+      const container = document.getElementById('alerts-container');
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      let lowInsumos = inventory.filter(item => item.qty <= item.threshold);
+
+      if (lowInsumos.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 border border-emerald-200 bg-emerald-50/50 rounded-2xl text-center flex flex-col items-center justify-center">
+            <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 border border-emerald-200 text-xl">✓</div>
+            <h3 class="font-serif text-lg font-bold text-emerald-900 mt-4">¡Todo el Inventario Está en Orden!</h3>
+            <p class="text-xs text-emerald-700 mt-1 max-w-[50ch]">Actualmente todos los insumos críticos de la cafetería de especialidad se encuentran por encima de su umbral de alerta.</p>
+          </div>
+        `;
+        return;
+      }
+
+      lowInsumos.forEach(item => {
+        container.innerHTML += `
+          <div class="p-5 border border-rose-200 bg-rose-50/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-start gap-4">
+              <div class="bg-rose-100 border border-rose-200 text-rose-600 p-3 rounded-xl text-xl font-bold">⚠️</div>
+              <div>
+                <h4 class="font-bold text-coffee-ink text-sm">Alerta Crítica: ${item.name}</h4>
+                <p class="text-xs text-rose-800 mt-0.5">El nivel actual de stock es de <strong class="tabular-numbers font-bold text-rose-900">${item.qty.toFixed(1)} ${item.unit}</strong>, por debajo del umbral de seguridad de <strong>${item.threshold.toFixed(1)}</strong>.</p>
+                <p class="text-[10px] text-coffee-muted mt-2 font-medium">Recomendación: Contactar al proveedor express y generar orden de reposición de inmediato.</p>
+              </div>
+            </div>
+            <button onclick="orderStockSimulated('${item.id}')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-md transition-all shrink-0">
+              Auto-Abastecer Lote
+            </button>
+          </div>
+        `;
+      });
+    }
+
+    // 11. ACCIONES DEL SISTEMA: AJUSTAR STOCK DE INSUMOS
+    function changeStock(itemId, delta) {
+      const item = inventory.find(i => i.id === itemId);
+      if (!item) return;
+
+      const oldQty = item.qty;
+      item.qty = Math.max(0, item.qty + delta);
+      
+      // Mostrar toast informativo si cambia estado crítico
+      const wasLow = oldQty <= item.threshold;
+      const isLow = item.qty <= item.threshold;
+      
+      if (!wasLow && isLow) {
+        showToast(`¡Alerta! ${item.name} ha caído en stock crítico.`, '🚨');
+      } else if (wasLow && !isLow) {
+        showToast(`${item.name} reabastecido. Estado normal.`, '🌾');
+      } else {
+        showToast(`Stock de ${item.name} ajustado.`, '📦');
+      }
+
+      recalculateAndRender();
+    }
+
+    // 12. ACCIONES DEL SISTEMA: CAMBIAR ESTADO DE TRANSACCIÓN
+    function toggleTransactionStatus(txId) {
+      const tx = transactions.find(t => t.id === txId);
+      if (!tx) return;
+
+      tx.status = tx.status === 'Completado' ? 'Pendiente' : 'Completado';
+      showToast(`Pedido #${tx.id} marcado como ${tx.status}.`, tx.status === 'Completado' ? '✅' : '⏳');
+      recalculateAndRender();
+    }
+
+    // 13. SELECCIONAR PRODUCTO EN POS
+    function selectProduct(prodId) {
+      // Remover highlight previo
+      const ids = ['espresso', 'latte', 'vainilla'];
+      ids.forEach(id => {
+        document.getElementById(`pos-product-${id}`).classList.remove('border-coffee-dark', 'bg-coffee-light/30', 'scale-[1.02]');
+      });
+
+      // Añadir highlight
+      document.getElementById(`pos-product-${prodId}`).classList.add('border-coffee-dark', 'bg-coffee-light/30', 'scale-[1.02]');
+
+      selectedPosProduct = prodId;
+      selectedPosQty = 1;
+
+      updatePOSDetails();
+    }
+
+    function updateCartQuantity(delta) {
+      if (!selectedPosProduct) {
+        showToast('Por favor, selecciona un producto primero.', '⚠️');
+        return;
+      }
+      selectedPosQty = Math.max(1, selectedPosQty + delta);
+      updatePOSDetails();
+    }
+
+    function updatePOSDetails() {
+      const nameNode = document.getElementById('cart-product-name');
+      const qtyNode = document.getElementById('cart-product-qty');
+      const totalNode = document.getElementById('cart-total');
+
+      if (!selectedPosProduct) {
+        nameNode.textContent = "Ninguno seleccionado";
+        qtyNode.textContent = "1";
+        totalNode.textContent = "S/. 0.00";
+        return;
+      }
+
+      let price = 0;
+      let name = '';
+      if (selectedPosProduct === 'espresso') {
+        price = TWEAK_DEFAULTS.posEspressoPrice;
+        name = 'Café Espresso Doble';
+      } else if (selectedPosProduct === 'latte') {
+        price = TWEAK_DEFAULTS.posLattePrice;
+        name = 'Café Latte de la Casa';
+      } else if (selectedPosProduct === 'vainilla') {
+        price = TWEAK_DEFAULTS.posVainillaPrice;
+        name = 'Latte de Vainilla Francesa';
+      }
+
+      nameNode.textContent = name;
+      qtyNode.textContent = selectedPosQty;
+      
+      const total = price * selectedPosQty;
+      totalNode.textContent = `S/. ${total.toFixed(2)}`;
+    }
+
+    // 14. PROCESAR PEDIDO DESDE POS (RESTANDO INGREDIENTES EN INVENTARIO AUTOMÁTICAMENTE)
+    function checkoutOrder() {
+      if (!selectedPosProduct) {
+        showToast('Selecciona un producto para registrar.', '⚠️');
+        return;
+      }
+
+      let price = 0;
+      let name = '';
+      
+      // Deducción de ingredientes
+      let coffeeDeduction = 0;
+      let milkDeduction = 0;
+      let syrupDeduction = 0;
+      let cupDeduction = selectedPosQty;
+
+      if (selectedPosProduct === 'espresso') {
+        price = TWEAK_DEFAULTS.posEspressoPrice;
+        name = 'Café Espresso Doble';
+        coffeeDeduction = 0.02 * selectedPosQty; // 20g por taza
+      } else if (selectedPosProduct === 'latte') {
+        price = TWEAK_DEFAULTS.posLattePrice;
+        name = 'Café Latte';
+        coffeeDeduction = 0.02 * selectedPosQty; // 20g por taza
+        milkDeduction = 0.25 * selectedPosQty;   // 250ml por taza
+      } else if (selectedPosProduct === 'vainilla') {
+        price = TWEAK_DEFAULTS.posVainillaPrice;
+        name = 'Latte de Vainilla';
+        coffeeDeduction = 0.02 * selectedPosQty;
+        milkDeduction = 0.25 * selectedPosQty;
+        syrupDeduction = 0.05 * selectedPosQty;   // 0.05 botellas (aprox 50ml) por taza
+      }
+
+      const total = price * selectedPosQty;
+      const mesa = document.getElementById('pos-table').value;
+      const pago = document.getElementById('pos-payment').value;
+
+      // Verificar y deducir ingredientes
+      const coffeeItem = inventory.find(i => i.id === 'espresso');
+      const milkItem = inventory.find(i => i.id === 'leche');
+      const syrupItem = inventory.find(i => i.id === 'jarabe');
+      const cupsItem = inventory.find(i => i.id === 'vasos');
+
+      if (coffeeItem.qty < coffeeDeduction || cupsItem.qty < cupDeduction || (milkDeduction > 0 && milkItem.qty < milkDeduction)) {
+        showToast('No se puede registrar. ¡Stock insuficiente de insumos!', '🚨');
+        return;
+      }
+
+      // Procesar la sustracción de inventario
+      coffeeItem.qty -= coffeeDeduction;
+      cupsItem.qty -= cupDeduction;
+      if (milkDeduction > 0) milkItem.qty -= milkDeduction;
+      if (syrupDeduction > 0) syrupItem.qty -= syrupDeduction;
+
+      // Registrar la transacción al tope de la lista
+      const newId = String(parseInt(transactions[0].id) + 1);
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+      
+      transactions.unshift({
+        id: newId,
+        table: mesa,
+        amount: total,
+        method: pago,
+        status: 'Completado', // Por defecto se registra completo al pagar en caja
+        time: timeStr
+      });
+
+      showToast(`¡Pedido #${newId} registrado con éxito! Stock deducido.`, '🧾');
+
+      // Reset de POS
+      selectedPosProduct = null;
+      updatePOSDetails();
+      const ids = ['espresso', 'latte', 'vainilla'];
+      ids.forEach(id => {
+        document.getElementById(`pos-product-${id}`).classList.remove('border-coffee-dark', 'bg-coffee-light/30', 'scale-[1.02]');
+      });
+
+      recalculateAndRender();
+    }
+
+    // 15. SIMULAR ACCIÓN DE REABASTECIMIENTO PROVEEDOR
+    function orderStockSimulated(itemId) {
+      const item = inventory.find(i => i.id === itemId);
+      if (!item) return;
+
+      let topUp = 0;
+      if (itemId === 'espresso') topUp = 10;
+      else if (itemId === 'leche') topUp = 20;
+      else if (itemId === 'jarabe') topUp = 5;
+      else if (itemId === 'vasos') topUp = 200;
+
+      item.qty += topUp;
+      showToast(`Lote de reabastecimiento añadido a ${item.name} (+${topUp}).`, '🚚');
+      recalculateAndRender();
+    }
+
+    function simulateRestockAll() {
+      let lowItems = inventory.filter(i => i.qty <= i.threshold);
+      if (lowItems.length === 0) {
+        showToast('Todos los insumos tienen stock suficiente.', '✓');
+        return;
+      }
+
+      lowItems.forEach(item => {
+        let topUp = 0;
+        if (item.id === 'espresso') topUp = 8;
+        else if (item.id === 'leche') topUp = 15;
+        else if (item.id === 'jarabe') topUp = 4;
+        else if (item.id === 'vasos') topUp = 150;
+        item.qty += topUp;
+      });
+
+      showToast('¡Reabastecimiento express completado para todos los insumos bajos!', '🚚');
+      recalculateAndRender();
+    }
+
+    // 16. FILTRAR INVENTARIO EN SECCIÓN DETALLADA
+    function filterInventory(filterType) {
+      inventoryFilter = filterType;
+      
+      const btnAll = document.getElementById('btn-inv-filter-all');
+      const btnLow = document.getElementById('btn-inv-filter-low');
+
+      if (filterType === 'all') {
+        btnAll.className = "text-xs px-4 py-2 rounded-xl border border-coffee-dark/80 bg-coffee-dark text-white font-semibold transition-all";
+        btnLow.className = "text-xs px-4 py-2 rounded-xl border border-coffee-border text-coffee-muted hover:text-coffee-dark hover:bg-coffee-light/30 font-semibold transition-all flex items-center gap-1.5";
+      } else {
+        btnAll.className = "text-xs px-4 py-2 rounded-xl border border-coffee-border text-coffee-muted hover:text-coffee-dark hover:bg-coffee-light/30 font-semibold transition-all";
+        btnLow.className = "text-xs px-4 py-2 rounded-xl border border-rose-600 bg-rose-600 text-white font-bold transition-all flex items-center gap-1.5";
+      }
+
+      recalculateAndRender();
+    }
+
+    // 17. FILTRAR TRANSACCIONES
+    function filterTransactions(status) {
+      transactionFilter = status;
+      
+      const filterAll = document.getElementById('tx-filter-all');
+      const filterComp = document.getElementById('tx-filter-completed');
+      const filterPend = document.getElementById('tx-filter-pending');
+
+      // Restablecer todos los estilos a básico
+      const baseClass = "text-[11px] font-bold px-3 py-1.5 rounded-lg border border-coffee-border text-coffee-muted hover:text-coffee-ink hover:bg-coffee-light/20 transition-all";
+      const activeClass = "text-[11px] font-bold px-3 py-1.5 rounded-lg border border-coffee-dark bg-coffee-dark text-white transition-all";
+      
+      filterAll.className = baseClass;
+      filterComp.className = baseClass;
+      filterPend.className = baseClass;
+
+      if (status === 'all') filterAll.className = activeClass;
+      else if (status === 'Completado') filterComp.className = activeClass;
+      else if (status === 'Pendiente') filterPend.className = activeClass;
+
+      recalculateAndRender();
+    }
+
+    // 18. BUSCAR TRANSACCIONES
+    function searchTransactions(val) {
+      transactionSearchTerm = val;
+      recalculateAndRender();
+    }
+
+    // 19. SIMULAR OPERACIÓN COMPLETA DESDE PANEL DE AJUSTE (TWEAK)
+    function simulateOrderFlow() {
+      // Escoger un producto al azar
+      const products = ['espresso', 'latte', 'vainilla'];
+      const randomProd = products[Math.floor(Math.random() * products.length)];
+      
+      const tables = ['Mesa 1', 'Mesa 4', 'Mesa 7', 'Mesa 12', 'Para Llevar'];
+      const randomTable = tables[Math.floor(Math.random() * tables.length)];
+      
+      const payMethods = ['Tarjeta', 'Efectivo'];
+      const randomPay = payMethods[Math.floor(Math.random() * payMethods.length)];
+
+      let price = 0;
+      let name = '';
+      let coffeeDeduction = 0;
+      let milkDeduction = 0;
+      let syrupDeduction = 0;
+
+      if (randomProd === 'espresso') {
+        price = TWEAK_DEFAULTS.posEspressoPrice;
+        name = 'Café Espresso Doble';
+        coffeeDeduction = 0.02; 
+      } else if (randomProd === 'latte') {
+        price = TWEAK_DEFAULTS.posLattePrice;
+        name = 'Café Latte';
+        coffeeDeduction = 0.02;
+        milkDeduction = 0.25;
+      } else if (randomProd === 'vainilla') {
+        price = TWEAK_DEFAULTS.posVainillaPrice;
+        name = 'Latte de Vainilla';
+        coffeeDeduction = 0.02;
+        milkDeduction = 0.25;
+        syrupDeduction = 0.05;
+      }
+
+      // Restar ingrediente
+      inventory.find(i => i.id === 'espresso').qty = Math.max(0, inventory.find(i => i.id === 'espresso').qty - coffeeDeduction);
+      inventory.find(i => i.id === 'vasos').qty = Math.max(0, inventory.find(i => i.id === 'vasos').qty - 1);
+      if (milkDeduction > 0) inventory.find(i => i.id === 'leche').qty = Math.max(0, inventory.find(i => i.id === 'leche').qty - milkDeduction);
+      if (syrupDeduction > 0) inventory.find(i => i.id === 'jarabe').qty = Math.max(0, inventory.find(i => i.id === 'jarabe').qty - syrupDeduction);
+
+      const newId = String(parseInt(transactions[0].id) + 1);
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+      // Añadir la transacción como completada o pendiente aleatorio
+      const randStatus = Math.random() > 0.3 ? 'Completado' : 'Pendiente';
+
+      transactions.unshift({
+        id: newId,
+        table: randomTable,
+        amount: price,
+        method: randomPay,
+        status: randStatus,
+        time: timeStr
+      });
+
+      showToast(`Pedido #${newId} registrado (${name} en ${randomTable})`, '🧾');
+      recalculateAndRender();
+    }
+
+    function simulateNewTransactionIncoming() {
+      // Simula un pedido de cliente externo que entra como PENDIENTE
+      simulateOrderFlow();
+      // Aseguramos que la última transaccion quede pendiente para el ejercicio
+      transactions[0].status = 'Pendiente';
+      recalculateAndRender();
+      showToast(`¡Transacción entrante #${transactions[0].id} en estado Pendiente!`, '⏳');
+    }
+
+    function simulateServerFluctuation() {
+      const pingNode = document.getElementById('server-latency');
+      const randomLatency = Math.floor(Math.random() * 45) + 5;
+      pingNode.textContent = `${randomLatency}ms`;
+      showToast(`Latencia del servidor actualizada: ${randomLatency}ms`, '🔌');
+    }
+  </script>
+
+</body>
+</html>
