@@ -1,0 +1,1997 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cafetería Origen — Tablet de Pedidos</title>
+  
+  <!-- Tipografías de Google Fonts: Playfair Display para títulos elegantes y Plus Jakarta Sans para legibilidad de sistema -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       1. VARIABLES Y DISEÑO DEL SISTEMA (Paleta Café, Beige, Gris Sutil)
+       ========================================================================== */
+    :root {
+      /* Paleta solicitada por el usuario */
+      --accent: oklch(33.15% 0.052 45.42);       /* Marrón Café Elegante (#4A3525) */
+      --accent-hover: oklch(24% 0.04 45.42);     /* Café más oscuro para interacción */
+      --beige-light: oklch(96.5% 0.015 60);      /* Beige ultra claro para fondo sutil (#F9F6F0) */
+      --beige-medium: oklch(92.5% 0.025 60);     /* Beige medio para detalles y bordes (#F0E5D8) */
+      --beige-dark: oklch(84% 0.04 60);          /* Beige oscuro para estados activos / hover (#DFCEBA) */
+      --bg-gray: oklch(97% 0.003 45);            /* Fondo gris sutil (#F4F4F5) */
+      
+      /* Capas Neutras y Semánticas */
+      --bg-surface: oklch(100% 0 0);             /* Blanco para tarjetas y paneles */
+      --fg-primary: oklch(20% 0.015 45);         /* Negro suave/Marrón café oscuro para textos */
+      --fg-muted: oklch(50% 0.012 45);          /* Marrón grisáceo para textos secundarios */
+      --border-color: oklch(91% 0.005 45);       /* Borde gris sutil */
+      
+      /* Semántica de Producto */
+      --success: oklch(58% 0.16 145);            /* Verde para confirmaciones */
+      --success-light: oklch(95% 0.03 145);      /* Fondo verde claro */
+      --warning: oklch(72% 0.14 75);             /* Dorado para alertas */
+      --danger: oklch(55% 0.18 25);              /* Rojo para cancelaciones / eliminar */
+      --danger-light: oklch(94% 0.02 25);
+      
+      /* Tipografía y Posturas */
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    /* Reset & Base */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-gray);
+      color: var(--fg-primary);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Estilo de scrollbars para tablet */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--beige-dark);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    /* ==========================================================================
+       2. ESTRUCTURA DE LA INTERFAZ (Layout de Tablet de Alto Rendimiento)
+       ========================================================================== */
+    .app-container {
+      display: flex;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Menú Lateral Izquierdo (Categorías) */
+    .sidebar-left {
+      width: 250px;
+      background-color: var(--accent);
+      color: var(--beige-light);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 10;
+    }
+
+    .brand-header {
+      padding: 32px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .brand-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--beige-dark);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .brand-name {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--beige-light);
+      letter-spacing: -0.01em;
+    }
+
+    .categories-nav {
+      flex: 1;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .category-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .category-btn svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8px;
+      transition: stroke 0.25s;
+    }
+
+    .category-btn:hover {
+      background-color: rgba(255, 255, 255, 0.06);
+      color: var(--beige-light);
+    }
+
+    .category-btn.active {
+      background-color: var(--beige-light);
+      color: var(--accent);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar-footer {
+      padding: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background-color: var(--beige-medium);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--beige-light);
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--beige-dark);
+    }
+
+    /* Área Central (Catálogo de Productos) */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-gray);
+    }
+
+    .top-bar {
+      padding: 24px 32px;
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .welcome-section h1 {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--fg-primary);
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+
+    .welcome-section p {
+      font-size: 14px;
+      color: var(--fg-muted);
+    }
+
+    .search-box {
+      position: relative;
+      width: 300px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 46px;
+      background-color: var(--bg-gray);
+      border: 1px solid transparent;
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--fg-primary);
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      background-color: var(--bg-surface);
+      border-color: var(--beige-dark);
+      box-shadow: 0 0 0 3px rgba(74, 53, 37, 0.08);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      stroke: var(--fg-muted);
+      fill: none;
+      stroke-width: 2px;
+      pointer-events: none;
+    }
+
+    /* Contenedor de la Cuadrícula */
+    .catalog-viewport {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+    }
+
+    .grid-header {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .category-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--fg-primary);
+    }
+
+    .results-count {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    /* Tarjetas de Productos (Esquinas muy redondeadas) */
+    .product-card {
+      background-color: var(--bg-surface);
+      border-radius: 24px; /* Esquinas muy redondeadas */
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(74, 53, 37, 0.08);
+      border-color: var(--beige-dark);
+    }
+
+    .card-visual {
+      height: 160px;
+      background: linear-gradient(135deg, var(--beige-light) 0%, var(--beige-medium) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-visual svg {
+      width: 80px;
+      height: 80px;
+      stroke: var(--accent);
+      fill: none;
+      stroke-width: 1.2px;
+      opacity: 0.9;
+    }
+
+    .product-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background-color: rgba(255, 255, 255, 0.92);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--beige-medium);
+    }
+
+    .card-info {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .product-name {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--fg-primary);
+      margin-bottom: 6px;
+    }
+
+    .product-desc {
+      font-size: 13px;
+      color: var(--fg-muted);
+      line-height: 1.5;
+      margin-bottom: 16px;
+      flex: 1;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .price-tag {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .price-currency {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--fg-muted);
+    }
+
+    .price-val {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--fg-primary);
+    }
+
+    /* Botón Llamativo de 'Agregar al carrito' */
+    .add-to-cart-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: var(--beige-light);
+      border: 1px solid var(--beige-dark);
+      color: var(--accent);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .add-to-cart-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2px;
+    }
+
+    .add-to-cart-btn:hover {
+      background-color: var(--accent);
+      border-color: var(--accent);
+      color: var(--beige-light);
+      box-shadow: 0 4px 12px rgba(74, 53, 37, 0.2);
+    }
+
+    .add-to-cart-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* Panel Derecho (Resumen del Pedido - "Tu Pedido") */
+    .sidebar-right {
+      width: 360px;
+      background-color: var(--bg-surface);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      z-index: 10;
+    }
+
+    .order-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .order-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--fg-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .order-title svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--accent);
+      fill: none;
+      stroke-width: 2px;
+    }
+
+    .table-indicator {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background-color: var(--beige-light);
+      border: 1px solid var(--beige-medium);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .table-indicator:hover {
+      background-color: var(--beige-medium);
+    }
+
+    /* Lista del Carrito */
+    .cart-items-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .empty-cart-state {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px;
+      color: var(--fg-muted);
+    }
+
+    .empty-cart-state svg {
+      width: 64px;
+      height: 64px;
+      stroke: var(--beige-dark);
+      fill: none;
+      stroke-width: 1.2px;
+      margin-bottom: 16px;
+    }
+
+    .empty-cart-state p {
+      font-size: 14px;
+      max-width: 200px;
+      line-height: 1.5;
+    }
+
+    .cart-item {
+      display: flex;
+      gap: 14px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .item-icon {
+      width: 48px;
+      height: 48px;
+      background-color: var(--beige-light);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--beige-medium);
+    }
+
+    .item-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--accent);
+      fill: none;
+      stroke-width: 1.5px;
+    }
+
+    .item-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .item-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .item-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--fg-primary);
+    }
+
+    .item-price {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--fg-primary);
+    }
+
+    .item-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      background-color: var(--bg-gray);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    .qty-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 0.15s;
+    }
+
+    .qty-btn:hover {
+      background-color: var(--beige-medium);
+    }
+
+    .qty-val {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      min-width: 28px;
+      text-align: center;
+    }
+
+    .delete-item-btn {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--fg-muted);
+      padding: 4px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      transition: all 0.15s;
+    }
+
+    .delete-item-btn:hover {
+      color: var(--danger);
+      background-color: var(--danger-light);
+    }
+
+    .delete-item-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2px;
+    }
+
+    /* Resumen de Cuenta */
+    .order-totals {
+      padding: 24px;
+      border-top: 1px solid var(--border-color);
+      background-color: var(--beige-light);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--fg-muted);
+    }
+
+    .totals-row.total-final {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--fg-primary);
+      border-top: 1px solid var(--beige-medium);
+      padding-top: 12px;
+      margin-top: 4px;
+    }
+
+    .total-final .total-val {
+      font-family: var(--font-mono);
+      color: var(--accent);
+    }
+
+    /* Botón Grande de 'Confirmar Pedido' */
+    .confirm-order-btn {
+      width: 100%;
+      background-color: var(--accent);
+      color: var(--beige-light);
+      border: none;
+      border-radius: 16px;
+      padding: 18px 24px;
+      font-family: var(--font-body);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 20px rgba(74, 53, 37, 0.15);
+    }
+
+    .confirm-order-btn:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(74, 53, 37, 0.25);
+    }
+
+    .confirm-order-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .confirm-order-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .confirm-order-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2px;
+    }
+
+    /* ==========================================================================
+       3. MODALES INTERACTIVOS Y DIÁLOGOS
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(74, 53, 37, 0.4);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-card {
+      background-color: var(--bg-surface);
+      width: 480px;
+      border-radius: 28px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--fg-primary);
+    }
+
+    .close-modal-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--fg-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      transition: background 0.15s;
+    }
+
+    .close-modal-btn:hover {
+      background-color: var(--bg-gray);
+      color: var(--fg-primary);
+    }
+
+    .close-modal-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2px;
+    }
+
+    .modal-body {
+      padding: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--fg-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    /* Selector de Mesas Cuadrícula */
+    .table-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .table-select-btn {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--fg-primary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .table-select-btn:hover {
+      background-color: var(--beige-light);
+      border-color: var(--beige-dark);
+    }
+
+    .table-select-btn.selected {
+      background-color: var(--accent);
+      border-color: var(--accent);
+      color: var(--beige-light);
+      box-shadow: 0 4px 12px rgba(74, 53, 37, 0.15);
+    }
+
+    /* Selector de Documento de Venta */
+    .doc-type-selector {
+      display: flex;
+      gap: 12px;
+    }
+
+    .doc-btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--fg-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .doc-btn:hover {
+      background-color: var(--beige-light);
+      border-color: var(--beige-dark);
+    }
+
+    .doc-btn.active {
+      background-color: var(--beige-light);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .modal-footer {
+      padding: 24px 32px 32px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+      color: var(--fg-muted);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--bg-gray);
+      color: var(--fg-primary);
+    }
+
+    .btn-primary {
+      flex: 2;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background-color: var(--accent);
+      color: var(--beige-light);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .btn-primary svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2px;
+    }
+
+    /* Modal de Éxito de Pedido */
+    .success-panel {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+    }
+
+    .success-icon-wrap {
+      width: 64px;
+      height: 64px;
+      background-color: var(--success-light);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--success);
+      margin-bottom: 24px;
+    }
+
+    .success-icon-wrap svg {
+      width: 32px;
+      height: 32px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 3px;
+    }
+
+    .success-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--fg-primary);
+      margin-bottom: 8px;
+    }
+
+    .success-desc {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin-bottom: 24px;
+      max-width: 320px;
+      line-height: 1.5;
+    }
+
+    /* Ticket Simulado de Cocina */
+    .receipt-preview {
+      width: 100%;
+      background-color: var(--bg-gray);
+      border: 1px dashed var(--beige-dark);
+      border-radius: 12px;
+      padding: 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--fg-primary);
+      text-align: left;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .receipt-line {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .receipt-divider {
+      border-top: 1px dashed var(--beige-dark);
+      margin: 8px 0;
+    }
+
+    .receipt-header {
+      text-align: center;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    /* ==========================================================================
+       4. HERRAMIENTAS ADICIONALES (TWEAKS / CONFIGURADOR DE DISEÑO)
+       ========================================================================== */
+    .design-tweaks-trigger {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      width: 44px;
+      height: 44px;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      z-index: 50;
+      color: var(--accent);
+      transition: all 0.2s;
+    }
+
+    .design-tweaks-trigger:hover {
+      transform: rotate(30deg) scale(1.05);
+      background-color: var(--beige-light);
+    }
+
+    .design-tweaks-trigger svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2px;
+    }
+
+    .tweaks-panel {
+      position: fixed;
+      bottom: 80px;
+      left: 24px;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 20px;
+      width: 280px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      z-index: 50;
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .tweaks-title {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .tweak-group {
+      margin-bottom: 14px;
+    }
+
+    .tweak-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg-muted);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .tweak-select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      font-family: var(--font-body);
+      font-size: 12px;
+      background-color: var(--bg-gray);
+      color: var(--fg-primary);
+      outline: none;
+    }
+
+    .tweak-select:focus {
+      border-color: var(--accent);
+    }
+
+    /* Notificación Toast */
+    .toast-notification {
+      position: fixed;
+      bottom: 24px;
+      right: 396px; /* Posicionada al costado del carrito para no interferir */
+      background-color: var(--accent);
+      color: var(--beige-light);
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      z-index: 90;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .toast-notification.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast-notification svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Contenedor Principal de la App -->
+  <div class="app-container">
+    
+    <!-- ==========================================================================
+         MENÚ LATERAL IZQUIERDO (Categorías de la Cafetería)
+         ========================================================================== -->
+    <aside class="sidebar-left">
+      <div class="brand-header">
+        <span class="brand-badge">Especialidad</span>
+        <h2 class="brand-name">ORIGEN</h2>
+      </div>
+
+      <nav class="categories-nav">
+        <button class="category-btn active" data-category="cafe" onclick="switchCategory('cafe')">
+          <!-- Icono de Taza de Café con trazo elegante de 1.8px -->
+          <svg viewBox="0 0 24 24">
+            <path d="M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z" />
+            <path d="M6 2v2M10 2v2M14 2v2" stroke-linecap="round" />
+          </svg>
+          Café
+        </button>
+        
+        <button class="category-btn" data-category="metodos" onclick="switchCategory('metodos')">
+          <!-- Icono de Matraz/Gotero para Métodos de Extracción -->
+          <svg viewBox="0 0 24 24">
+            <path d="M6 3h12M12 3v12M9 12h6" stroke-linecap="round"/>
+            <path d="M5 21h14l-4-9H9l-4 9z" stroke-linejoin="round"/>
+          </svg>
+          Métodos de extracción
+        </button>
+        
+        <button class="category-btn" data-category="postres" onclick="switchCategory('postres')">
+          <!-- Icono de Postre/Muffin -->
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2a4 4 0 0 1 4 4v2H8V6a4 4 0 0 1 4-4z" />
+            <path d="M4 11a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v1a6 6 0 0 1-6 6H10a6 6 0 0 1-6-6v-1z" stroke-linejoin="round" />
+            <path d="M9 17v4M12 17v4M15 17v4" stroke-linecap="round" />
+          </svg>
+          Postres
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-badge">
+          <div class="user-avatar">CM</div>
+          <div class="user-info">
+            <span class="user-name">Carlos Mendoza</span>
+            <span class="user-role">Mesero • Mesa Activa</span>
+          </div>
+        </div>
+        <div class="pt-5 mt-2 border-t border-white/10">
+          <a href="index.html" class="block text-center text-xs font-medium transition-colors duration-200 hover:text-beige-light" style="color: rgba(223, 206, 186, 0.55);">
+            &#x2699;&#xFE0F; Panel Admin
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==========================================================================
+         ÁREA CENTRAL (Catálogo de Productos)
+         ========================================================================== -->
+    <main class="main-content">
+      
+      <!-- Barra Superior de Herramientas -->
+      <header class="top-bar">
+        <div class="welcome-section">
+          <h1 id="welcome-title">Cafetería de Especialidad</h1>
+          <p id="welcome-subtitle">Panel de atención y pedidos rápidos en tablet</p>
+        </div>
+
+        <div class="search-box">
+          <!-- Icono de Búsqueda -->
+          <svg class="search-icon" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" stroke-linecap="round" />
+          </svg>
+          <input type="text" class="search-input" id="search-bar" placeholder="Buscar por nombre..." oninput="handleSearch()">
+        </div>
+      </header>
+
+      <!-- Panel de Contenido Desplazable del Catálogo -->
+      <section class="catalog-viewport">
+        
+        <div class="grid-header">
+          <h2 class="category-title" id="active-category-name">Café de Especialidad</h2>
+          <span class="results-count" id="products-count">5 Productos</span>
+        </div>
+
+        <!-- Rejilla de Tarjetas de Producto -->
+        <div class="product-grid" id="product-grid-container">
+          <!-- Las tarjetas de producto se renderizan dinámicamente mediante JavaScript para asegurar la interactividad rápida -->
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ==========================================================================
+         PANEL DERECHO (Resumen "Tu Pedido")
+         ========================================================================== -->
+    <aside class="sidebar-right">
+      <div class="order-header">
+        <h3 class="order-title">
+          <!-- Icono de Bolsa de Compras -->
+          <svg viewBox="0 0 24 24">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+            <path d="M3 6h18M16 10a4 4 0 0 1-8 0" />
+          </svg>
+          Tu Pedido
+        </h3>
+        <span class="table-indicator" id="table-display-btn" onclick="openTableSelectModal()">Mesa 04</span>
+      </div>
+
+      <!-- Lista Dinámica de Carrito -->
+      <div class="cart-items-list" id="cart-items-container">
+        <!-- El estado de carrito vacío se maneja automáticamente -->
+      </div>
+
+      <!-- Totales y Botón de Confirmación -->
+      <div class="order-totals">
+        <div class="totals-row">
+          <span>Subtotal</span>
+          <span id="subtotal-val">S/. 0.00</span>
+        </div>
+        <div class="totals-row">
+          <span>I.G.V. (18%)</span>
+          <span id="igv-val">S/. 0.00</span>
+        </div>
+        <div class="totals-row total-final">
+          <span>Total Acumulado</span>
+          <span class="total-val" id="total-val">S/. 0.00</span>
+        </div>
+        
+        <div style="margin-top: 14px;">
+          <button class="confirm-order-btn" id="confirm-order-btn" onclick="openConfirmModal()" disabled>
+            <!-- Icono de Confirmación / Envío -->
+            <svg viewBox="0 0 24 24">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Confirmar Pedido
+          </button>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- ==========================================================================
+       MODAL DE SELECCIÓN DE MESA Y FACTURACIÓN
+       ========================================================================== -->
+  <div class="modal-backdrop" id="confirm-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-header-title">Detalles del Pedido</h3>
+        <button class="close-modal-btn" onclick="closeConfirmModal()">
+          <!-- Icono de Cerrar (X) -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M18 6 6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Contenido Principal del Formulario en el Modal -->
+      <div class="modal-body" id="modal-form-content">
+        <div class="form-group">
+          <label class="form-label">Número de Mesa</label>
+          <div class="table-grid" id="modal-table-selector">
+            <!-- Botones de mesa autogenerados -->
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tipo de Comprobante</label>
+          <div class="doc-type-selector">
+            <button class="doc-btn active" id="doc-boleta" onclick="setDocumentType('Boleta')">
+              Boleta de Venta
+            </button>
+            <button class="doc-btn" id="doc-factura" onclick="setDocumentType('Factura')">
+              Factura
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Comentarios / Notas Especiales</label>
+          <textarea id="order-notes" placeholder="Ej. Latte con leche de almendras, café bien caliente..." style="width: 100%; height: 80px; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-family: var(--font-body); font-size: 13px; color: var(--fg-primary); outline: none; resize: none; transition: border-color 0.2s;"></textarea>
+        </div>
+      </div>
+
+      <!-- Panel de éxito que se muestra tras confirmar -->
+      <div class="success-panel" id="modal-success-content">
+        <div class="success-icon-wrap">
+          <!-- Icono Checkmark -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="success-title">¡Pedido Enviado!</h3>
+        <p class="success-desc">El pedido ha sido transmitido con éxito a la barra y cocina para su preparación inmediata.</p>
+        
+        <!-- Vista previa de ticket impreso para cocina -->
+        <div class="receipt-preview" id="kitchen-receipt-preview">
+          <!-- Autogenerado -->
+        </div>
+      </div>
+
+      <!-- Botones de Acción del Modal -->
+      <div class="modal-footer" id="modal-action-footer">
+        <button class="btn-secondary" onclick="closeConfirmModal()">Cancelar</button>
+        <button class="btn-primary" onclick="submitOrderToKitchen()">
+          <!-- Icono de Impresión o Envío -->
+          <svg viewBox="0 0 24 24">
+            <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M6 14h12v8H6z" stroke-linejoin="round" />
+          </svg>
+          Enviar a Cocina
+        </button>
+      </div>
+      
+      <div class="modal-footer" id="modal-success-footer" style="display: none; justify-content: center;">
+        <button class="btn-primary" style="width: 100%;" onclick="resetOrderSystem()">
+          Entendido, Crear Nuevo Pedido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       TWEAKS PANEL (Configuraciones de Demostración para Restaurante)
+       ========================================================================== -->
+  <button class="design-tweaks-trigger" onclick="toggleTweaksPanel()" aria-label="Ajustes de diseño">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  </button>
+
+  <div class="tweaks-panel" id="tweaks-settings-panel">
+    <h4 class="tweaks-title">Ajustes de la Tablet</h4>
+    
+    <div class="tweak-group">
+      <label class="tweak-label">Modo de Operación</label>
+      <select class="tweak-select" id="mode-selector" onchange="changeOperationalMode()">
+        <option value="waiter">Mesero (Atención Rápida)</option>
+        <option value="customer">Autoservicio (Para Clientes)</option>
+      </select>
+    </div>
+
+    <div class="tweak-group" style="margin-bottom: 0;">
+      <label class="tweak-label">Visualización de Tarjeta</label>
+      <select class="tweak-select" id="card-style-selector" onchange="changeCardBorderRadius()">
+        <option value="rounded-xl">Esquinas Redondeadas (24px)</option>
+        <option value="rounded-full">Esquinas Súper Curvas (32px)</option>
+        <option value="rounded-sm">Esquinas Suaves (12px)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Notificación Toast -->
+  <div class="toast-notification" id="toast-notif">
+    <!-- Icono Check -->
+    <svg viewBox="0 0 24 24">
+      <path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span id="toast-text">Producto agregado</span>
+  </div>
+
+
+  <!-- ==========================================================================
+       5. COMPORTAMIENTO INTERACTIVO MEDIANTE JAVASCRIPT (ES6+)
+       ========================================================================== -->
+  <script>
+    /* Base de Datos de Productos Realista y Localizada en Perú (S/.) */
+    const PRODUCT_CATALOG = [
+      {
+        id: 'espresso-doble',
+        nombre: 'Espresso Doble',
+        categoria: 'cafe',
+        precio: 9.00,
+        descripcion: 'Dos disparos puros de espresso con granos seleccionados de Villa Rica. Notas intensas de cacao negro y nueces tostadas.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><path d="M7 2v2M10 2v2M13 2v2" stroke-linecap="round"/></svg>`,
+        detalles: 'Intensidad Alta • 2 oz'
+      },
+      {
+        id: 'latte-clasico',
+        nombre: 'Latte Clásico',
+        categoria: 'cafe',
+        precio: 12.00,
+        descripcion: 'Un shot de espresso balanceado con leche vaporizada sedosa. Textura sumamente cremosa y dulzura láctica natural.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><path d="M5 2c1.5 2-1.5 3 0 5M9 2c1.5 2-1.5 3 0 5" stroke-linecap="round"/></svg>`,
+        detalles: 'Intensidad Media • 10 oz'
+      },
+      {
+        id: 'cappuccino',
+        nombre: 'Cappuccino',
+        categoria: 'cafe',
+        precio: 12.00,
+        descripcion: 'Espresso clásico con partes perfectamente iguales de leche vaporizada y espuma densa de microburbujas, espolvoreado con cacao.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><path d="M12 2a2 2 0 0 0-2 2h4a2 2 0 0 0-2-2z" stroke-linecap="round"/></svg>`,
+        detalles: 'Intensidad Media • 8 oz'
+      },
+      {
+        id: 'americano',
+        nombre: 'Americano',
+        categoria: 'cafe',
+        precio: 10.00,
+        descripcion: 'Shot de espresso de cuerpo medio extraído directamente sobre agua caliente filtrada, conservando las notas limpias del grano.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><path d="M6 3v1M14 3v1M10 2v2" stroke-linecap="round"/></svg>`,
+        detalles: 'Intensidad Suave • 10 oz'
+      },
+      {
+        id: 'flat-white',
+        nombre: 'Flat White',
+        categoria: 'cafe',
+        precio: 13.00,
+        descripcion: 'Doble shot de ristretto vertido con una fina capa de leche microvaporizada aterciopelada. Intenso, con textura sin igual.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><path d="M8 2c.5 1-.5 2 0 3" stroke-linecap="round"/></svg>`,
+        detalles: 'Intensidad Alta • 6 oz'
+      },
+      {
+        id: 'v60',
+        nombre: 'Método V60',
+        categoria: 'metodos',
+        precio: 14.00,
+        descripcion: 'Filtrado manual de goteo mediante cono estriado. Resalta notas sumamente florales, acidez brillante y un cuerpo limpio.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M12 2L5 9h14L12 2z" stroke-linejoin="round"/><path d="M12 9v11M5 21h14" stroke-linecap="round"/></svg>`,
+        detalles: 'Cajamarca • Tueste Claro'
+      },
+      {
+        id: 'chemex',
+        nombre: 'Método Chemex',
+        categoria: 'metodos',
+        precio: 16.00,
+        descripcion: 'Filtrado elegante con jarra de vidrio y filtro de triple espesor. Produce una taza sumamente aromática, libre de sedimentos.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M8 3h8v3L10 14v5h4v2H10v-2l2-8V6H8V3z" stroke-linejoin="round"/></svg>`,
+        detalles: 'Cusco • Perfil Dulce'
+      },
+      {
+        id: 'prensa-francesa',
+        nombre: 'Prensa Francesa',
+        categoria: 'metodos',
+        precio: 12.00,
+        descripcion: 'Método de infusión completa que extrae todos los aceites esenciales del café, ofreciendo un cuerpo denso e inigualable persistencia.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M17 4h2M12 2v2M5 4h12v17H5V4zM5 8h12M9 4v17" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+        detalles: 'Chanchamayo • Cuerpo Alto'
+      },
+      {
+        id: 'sifon-japones',
+        nombre: 'Sifón Japonés',
+        categoria: 'metodos',
+        precio: 18.00,
+        descripcion: 'Espectacular infusión al vacío mediante transferencia térmica. Combina lo mejor del cuerpo de la prensa y la limpieza del filtro.',
+        imagen: `<svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M12 11v6"/><circle cx="12" cy="19" r="2"/></svg>`,
+        detalles: 'Oxapampa • Complejo'
+      },
+      {
+        id: 'muffin-arandanos',
+        nombre: 'Muffin de Arándanos',
+        categoria: 'postres',
+        precio: 8.50,
+        descripcion: 'Muffin artesanal horneado hoy en la mañana, colmado de arándanos orgánicos frescos de valle y crujiente streusel dulce.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M12 3a5 5 0 0 0-5 5v3h10V8a5 5 0 0 0-5-5z"/><path d="M5 11h14l-2 9H7l-2-9z" stroke-linejoin="round"/></svg>`,
+        detalles: 'Elaboración Propia • Fresco'
+      },
+      {
+        id: 'tarta-zanahoria',
+        nombre: 'Tarta de Zanahoria',
+        categoria: 'postres',
+        precio: 11.00,
+        descripcion: 'Delicioso bizcocho húmedo con zanahorias ralladas, nueces pecán y especias finas, cubierto de frosting sedoso de queso crema.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M21 16V8l-9-4-9 4v8c0 2.2 4 4 9 4s9-1.8 9-4z" stroke-linejoin="round"/><path d="M3 8c0 2 4 4 9 4s9-2 9-4" stroke-linejoin="round"/></svg>`,
+        detalles: 'Receta Clásica • Con Nueces'
+      },
+      {
+        id: 'croissant-mantequilla',
+        nombre: 'Croissant de Mantequilla',
+        categoria: 'postres',
+        precio: 7.50,
+        descripcion: 'Hojaldre tradicional francés elaborado a mano con mantequilla premium de alta pureza. Doradito, crujiente y aireado.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M12 3c-1.5 1-4.5 4-4.5 6s1 4 4.5 6c3.5-2 4.5-4 4.5-6s-3-5-4.5-6z" stroke-linejoin="round"/><path d="M4.5 10c-1 0-2 1.5-2 3s1.5 3.5 3 3.5c1.5 0 2-1.5 2-3s-1.5-3.5-3-3.5z" stroke-linejoin="round"/><path d="M19.5 10c1 0 2 1.5 2 3s-1.5 3.5-3 3.5c-1.5 0-2-1.5-2-3s1.5-3.5 3-3.5z" stroke-linejoin="round"/></svg>`,
+        detalles: 'Artesanal • Horneado del Día'
+      },
+      {
+        id: 'cheesecake-maracuya',
+        nombre: 'Cheesecake de Maracuyá',
+        categoria: 'postres',
+        precio: 12.50,
+        descripcion: 'Base de galleta crujiente y mousse horneado súper cremoso, bañado con un coulis brillante y aromático de maracuyá de la selva.',
+        imagen: `<svg viewBox="0 0 24 24"><path d="M3 12h18V8H3v4zM3 16h18v-2H3v2z" stroke-linejoin="round"/><path d="M12 3v5" stroke-linecap="round"/></svg>`,
+        detalles: 'Sabor Frutal • Dulce y Ácido'
+      }
+    ];
+
+    /* Estado de la Aplicación (Reactividad Vanilla) */
+    let cart = [];
+    let activeCategory = 'cafe';
+    let searchQuery = '';
+    let selectedTable = '04';
+    let documentType = 'Boleta';
+    let activeMode = 'waiter';
+
+    /* Inicializador de la Aplicación */
+    window.addEventListener('DOMContentLoaded', () => {
+      renderProducts();
+      updateCartDisplay();
+      generateTableButtons();
+      
+      // Auto-enfocar para garantizar navegación perfecta en tablets
+      document.getElementById('search-bar').focus();
+    });
+
+    /* Renderizar Catálogo de Productos Filtrado */
+    function renderProducts() {
+      const gridContainer = document.getElementById('product-grid-container');
+      gridContainer.innerHTML = '';
+
+      const filteredProducts = PRODUCT_CATALOG.filter(product => {
+        const matchesCategory = product.categoria === activeCategory;
+        const matchesSearch = product.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                              product.descripcion.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+
+      // Actualizar contador superior
+      const countDisplay = document.getElementById('products-count');
+      countDisplay.textContent = `${filteredProducts.length} ${filteredProducts.length === 1 ? 'Producto' : 'Productos'}`;
+
+      if (filteredProducts.length === 0) {
+        gridContainer.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--fg-muted);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.3-4.3"/>
+            </svg>
+            <p style="font-size: 15px; font-weight: 500;">No encontramos productos que coincidan con tu búsqueda.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Estilo de tarjeta según el configurador/tweak
+      const cardStyleSelector = document.getElementById('card-style-selector');
+      let radiusClass = '24px';
+      if (cardStyleSelector) {
+        if (cardStyleSelector.value === 'rounded-full') radiusClass = '32px';
+        if (cardStyleSelector.value === 'rounded-sm') radiusClass = '12px';
+      }
+
+      filteredProducts.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.style.borderRadius = radiusClass;
+
+        card.innerHTML = `
+          <div class="card-visual">
+            <span class="product-badge">${product.detalles}</span>
+            ${product.imagen}
+          </div>
+          <div class="card-info">
+            <h3 class="product-name">${product.nombre}</h3>
+            <p class="product-desc">${product.descripcion}</p>
+            <div class="card-footer">
+              <div class="price-tag">
+                <span class="price-currency">Soles</span>
+                <span class="price-val">S/. ${product.precio.toFixed(2)}</span>
+              </div>
+              <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 5v14M5 12h14" stroke-linecap="round"/>
+                </svg>
+                Agregar
+              </button>
+            </div>
+          </div>
+        `;
+        gridContainer.appendChild(card);
+      });
+    }
+
+    /* Alternar Categorías */
+    function switchCategory(category) {
+      activeCategory = category;
+      
+      // Actualizar botones del menú lateral
+      const buttons = document.querySelectorAll('.category-btn');
+      buttons.forEach(btn => {
+        if (btn.getAttribute('data-category') === category) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Actualizar encabezado del catálogo
+      const catTitle = document.getElementById('active-category-name');
+      const welcomeTitle = document.getElementById('welcome-title');
+      if (category === 'cafe') {
+        catTitle.textContent = 'Café de Especialidad';
+        welcomeTitle.textContent = 'Café de Especialidad';
+      } else if (category === 'metodos') {
+        catTitle.textContent = 'Métodos de Extracción';
+        welcomeTitle.textContent = 'Filtrados y Extracción';
+      } else if (category === 'postres') {
+        catTitle.textContent = 'Postres y Pastelería';
+        welcomeTitle.textContent = 'Acompañamientos Dulces';
+      }
+
+      renderProducts();
+    }
+
+    /* Manejar Búsqueda en Tiempo Real */
+    function handleSearch() {
+      const searchBar = document.getElementById('search-bar');
+      searchQuery = searchBar.value;
+      renderProducts();
+    }
+
+    /* ==========================================================================
+       LÓGICA DEL CARRITO DE COMPRAS Y PEDIDO
+       ========================================================================== */
+    function addToCart(productId) {
+      const product = PRODUCT_CATALOG.find(p => p.id === productId);
+      if (!product) return;
+
+      const existingItem = cart.find(item => item.id === productId);
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        cart.push({
+          ...product,
+          quantity: 1
+        });
+      }
+
+      showToast(`¡${product.nombre} agregado!`);
+      updateCartDisplay();
+    }
+
+    function changeQuantity(productId, delta) {
+      const item = cart.find(i => i.id === productId);
+      if (!item) return;
+
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        cart = cart.filter(i => i.id !== productId);
+      }
+
+      updateCartDisplay();
+    }
+
+    function removeFromCart(productId) {
+      const item = cart.find(i => i.id === productId);
+      if (!item) return;
+      cart = cart.filter(i => i.id !== productId);
+      showToast(`Eliminado: ${item.nombre}`);
+      updateCartDisplay();
+    }
+
+    /* Actualizar Cálculos y Elementos Visuales del Carrito */
+    function updateCartDisplay() {
+      const cartContainer = document.getElementById('cart-items-container');
+      const confirmBtn = document.getElementById('confirm-order-btn');
+      
+      if (cart.length === 0) {
+        cartContainer.innerHTML = `
+          <div class="empty-cart-state">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke-linecap="round"/>
+              <line x1="9" y1="9" x2="9.01" y2="9" stroke-linecap="round" stroke-width="3"/>
+              <line x1="15" y1="9" x2="15.01" y2="9" stroke-linecap="round" stroke-width="3"/>
+            </svg>
+            <h4 style="font-size: 16px; font-weight: 700; color: var(--fg-primary); margin-bottom: 6px;">Pedido vacío</h4>
+            <p>Selecciona productos de la cuadrícula para iniciar el pedido de la mesa.</p>
+          </div>
+        `;
+        confirmBtn.disabled = true;
+        updateTotals(0);
+        return;
+      }
+
+      cartContainer.innerHTML = '';
+      let subtotalAccumulator = 0;
+
+      cart.forEach(item => {
+        const itemSubtotal = item.precio * item.quantity;
+        subtotalAccumulator += itemSubtotal;
+
+        const row = document.createElement('div');
+        row.className = 'cart-item';
+        row.innerHTML = `
+          <div class="item-icon">
+            ${item.imagen}
+          </div>
+          <div class="item-details">
+            <div class="item-meta">
+              <span class="item-name">${item.nombre}</span>
+              <span class="item-price">S/. ${itemSubtotal.toFixed(2)}</span>
+            </div>
+            <div class="item-actions">
+              <div class="qty-controls">
+                <button class="qty-btn" onclick="changeQuantity('${item.id}', -1)" aria-label="Disminuir cantidad">-</button>
+                <span class="qty-val">${item.quantity}</span>
+                <button class="qty-btn" onclick="changeQuantity('${item.id}', 1)" aria-label="Incrementar cantidad">+</button>
+              </div>
+              <button class="delete-item-btn" onclick="removeFromCart('${item.id}')" aria-label="Quitar del pedido">
+                <svg viewBox="0 0 24 24">
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+        cartContainer.appendChild(row);
+      });
+
+      confirmBtn.disabled = false;
+      updateTotals(subtotalAccumulator);
+    }
+
+    /* Cálculos Financieros del Pedido */
+    function updateTotals(totalAmount) {
+      // En Perú, los precios expuestos al consumidor ya incluyen I.G.V. (18%)
+      const subtotalBase = totalAmount / 1.18;
+      const igvAmount = totalAmount - subtotalBase;
+
+      document.getElementById('subtotal-val').textContent = `S/. ${subtotalBase.toFixed(2)}`;
+      document.getElementById('igv-val').textContent = `S/. ${igvAmount.toFixed(2)}`;
+      document.getElementById('total-val').textContent = `S/. ${totalAmount.toFixed(2)}`;
+    }
+
+    /* Mostrar Notificación Flotante */
+    function showToast(message) {
+      const toast = document.getElementById('toast-notif');
+      const toastText = document.getElementById('toast-text');
+      toastText.textContent = message;
+      
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    /* ==========================================================================
+       MANEJO DE MODALES E INTERACCIONES DE CONFIRMACIÓN
+       ========================================================================== */
+    function openConfirmModal() {
+      const modal = document.getElementById('confirm-modal');
+      modal.style.display = 'flex';
+      
+      // Asegurarse de cargar el formulario inicial y resetear la vista de éxito anterior
+      document.getElementById('modal-header-title').textContent = 'Confirmación y Envío';
+      document.getElementById('modal-form-content').style.display = 'block';
+      document.getElementById('modal-action-footer').style.display = 'flex';
+      document.getElementById('modal-success-content').style.display = 'none';
+      document.getElementById('modal-success-footer').style.display = 'none';
+
+      // Marcar la mesa actualmente activa en la visualización
+      setSelectedTableButton(selectedTable);
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirm-modal').style.display = 'none';
+    }
+
+    function openTableSelectModal() {
+      openConfirmModal();
+    }
+
+    /* Generación del Selector de Mesas en el Modal */
+    function generateTableButtons() {
+      const container = document.getElementById('modal-table-selector');
+      container.innerHTML = '';
+
+      for (let i = 1; i <= 12; i++) {
+        const tableNum = i < 10 ? `0${i}` : `${i}`;
+        const btn = document.createElement('button');
+        btn.className = 'table-select-btn';
+        btn.id = `table-btn-${tableNum}`;
+        btn.textContent = `Mesa ${tableNum}`;
+        btn.onclick = () => {
+          selectTable(tableNum);
+        };
+        container.appendChild(btn);
+      }
+    }
+
+    function selectTable(tableNum) {
+      selectedTable = tableNum;
+      setSelectedTableButton(tableNum);
+      
+      // Actualizar el visualizador de la barra del pedido a la derecha
+      document.getElementById('table-display-btn').textContent = `Mesa ${tableNum}`;
+      showToast(`Cambiado a Mesa ${tableNum}`);
+    }
+
+    function setSelectedTableButton(tableNum) {
+      const buttons = document.querySelectorAll('.table-select-btn');
+      buttons.forEach(btn => {
+        if (btn.id === `table-btn-${tableNum}`) {
+          btn.classList.add('selected');
+        } else {
+          btn.classList.remove('selected');
+        }
+      });
+    }
+
+    function setDocumentType(type) {
+      documentType = type;
+      const bBtn = document.getElementById('doc-boleta');
+      const fBtn = document.getElementById('doc-factura');
+
+      if (type === 'Boleta') {
+        bBtn.classList.add('active');
+        fBtn.classList.remove('active');
+      } else {
+        fBtn.classList.add('active');
+        bBtn.classList.add('active'); // Opcional, pero manejado con la clase
+        bBtn.classList.remove('active');
+        fBtn.classList.add('active');
+      }
+    }
+
+    /* Envío del Pedido a Cocina / Generación del Ticket de Cocina */
+    function submitOrderToKitchen() {
+      // Ocultar formulario, mostrar pantalla de éxito y cargar ticket
+      document.getElementById('modal-header-title').textContent = 'Pedido Transmitido';
+      document.getElementById('modal-form-content').style.display = 'none';
+      document.getElementById('modal-action-footer').style.display = 'none';
+      
+      const successContent = document.getElementById('modal-success-content');
+      const successFooter = document.getElementById('modal-success-footer');
+      successContent.style.display = 'flex';
+      successFooter.style.display = 'flex';
+
+      // Armar la visualización del ticket de cocina
+      const receiptContainer = document.getElementById('kitchen-receipt-preview');
+      const timeStr = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+      
+      let itemsLines = '';
+      let totalAmount = 0;
+      cart.forEach(item => {
+        itemsLines += `
+          <div class="receipt-line">
+            <span>${item.quantity}x ${item.nombre}</span>
+            <span>S/. ${(item.precio * item.quantity).toFixed(2)}</span>
+          </div>
+        `;
+        totalAmount += item.precio * item.quantity;
+      });
+
+      const notes = document.getElementById('order-notes').value.trim();
+      const notesLine = notes ? `<div class="receipt-divider"></div><div><strong>NOTAS:</strong> ${notes}</div>` : '';
+
+      receiptContainer.innerHTML = `
+        <div class="receipt-header">TICKET DE COMANDA • MESA ${selectedTable}</div>
+        <div class="receipt-line">
+          <span>ATENDIÓ: C. MENDOZA</span>
+          <span>HORA: ${timeStr}</span>
+        </div>
+        <div class="receipt-line">
+          <span>DOC: ${documentType.toUpperCase()}</span>
+          <span>ESTADO: PREPARANDO</span>
+        </div>
+        <div class="receipt-divider"></div>
+        ${itemsLines}
+        <div class="receipt-divider"></div>
+        <div class="receipt-line" style="font-weight: 700;">
+          <span>TOTAL A COBRAR:</span>
+          <span>S/. ${totalAmount.toFixed(2)}</span>
+        </div>
+        ${notesLine}
+      `;
+    }
+
+    /* Resetear el Sistema para un nuevo pedido */
+    function resetOrderSystem() {
+      cart = [];
+      document.getElementById('order-notes').value = '';
+      updateCartDisplay();
+      closeConfirmModal();
+      showToast('Listo para el siguiente pedido');
+    }
+
+    /* ==========================================================================
+       6. LÓGICA DE TWEAKS / CAMBIOS DE INTERFAZ EN TIEMPO REAL (Fidelity Control)
+       ========================================================================== */
+    function toggleTweaksPanel() {
+      const panel = document.getElementById('tweaks-settings-panel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function changeOperationalMode() {
+      const mode = document.getElementById('mode-selector').value;
+      activeMode = mode;
+      
+      const badge = document.querySelector('.brand-badge');
+      const username = document.querySelector('.user-name');
+      const role = document.querySelector('.user-role');
+      const searchInput = document.getElementById('search-bar');
+
+      if (mode === 'customer') {
+        badge.textContent = 'Autoservicio';
+        username.textContent = 'Mesa 04';
+        role.textContent = 'Cafetería de Especialidad';
+        searchInput.placeholder = 'Selecciona tus favoritos...';
+        showToast('Modo Clientes (Autoservicio) Activado');
+      } else {
+        badge.textContent = 'Especialidad';
+        username.textContent = 'Carlos Mendoza';
+        role.textContent = 'Mesero • Mesa Activa';
+        searchInput.placeholder = 'Buscar por nombre...';
+        showToast('Modo Personal (Mesero) Activado');
+      }
+    }
+
+    function changeCardBorderRadius() {
+      renderProducts();
+      showToast('Estilo de tarjetas actualizado');
+    }
+
+    // Cerrar tweaks al presionar por fuera en la pantalla
+    document.addEventListener('click', (e) => {
+      const panel = document.getElementById('tweaks-settings-panel');
+      const trigger = document.querySelector('.design-tweaks-trigger');
+      if (panel && panel.style.display === 'block' && !panel.contains(e.target) && !trigger.contains(e.target)) {
+        panel.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
